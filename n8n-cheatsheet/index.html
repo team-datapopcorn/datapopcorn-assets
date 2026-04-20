@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n8n Cheat Sheet · 데이터팝콘</title>
+<meta name="description" content="n8n 초보자를 위한 핵심 치트시트. 트리거·노드·표현식·단축키를 한 장에. A4 출력 최적화.">
+<meta property="og:title" content="n8n Cheat Sheet · 데이터팝콘">
+<meta property="og:description" content="n8n 초보자를 위한 핵심 치트시트. 트리거·노드·표현식·단축키를 한 장에.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ff6d5a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+<style>
+/* ─── Design Tokens ─────────────────────────────────────── */
+:root {
+  --ink:    #111;
+  --mute:   #555;
+  --faint:  #888;
+  --line:   #e3e3e3;
+  --bg:     #f7f7f6;
+  --card:   #ffffff;
+  --accent: #ff6d5a;
+  --accent2: #ea5c4a;
+  --code-bg: #f0f0ee;
+  --radius:  8px;
+  --font-body: -apple-system, "Pretendard Variable", Pretendard, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
+}
+
+/* ─── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; color: var(--ink); background: var(--bg); }
+body { font-family: var(--font-body); line-height: 1.6; padding: 1.5rem 1.25rem 3rem; max-width: 1100px; margin: 0 auto; }
+
+/* ─── Language Toggle ─────────────────────────────────── */
+html[lang="en"] .ko { display: none; }
+html[lang="ko"] .en { display: none; }
+
+/* ─── Header ─────────────────────────────────────────── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: .75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--accent);
+}
+.logo { display: flex; align-items: baseline; gap: .5rem; }
+.logo h1 {
+  font-size: 1.55rem; font-weight: 800; letter-spacing: -.03em;
+}
+.logo h1 span { color: var(--accent); }
+.badge {
+  font-size: .7rem; font-weight: 600; padding: .15em .55em;
+  background: var(--code-bg); border-radius: 99px; color: var(--faint);
+  border: 1px solid var(--line); font-family: var(--font-mono);
+}
+.header-actions { display: flex; align-items: center; gap: .5rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .8rem; font-weight: 600; font-family: var(--font-body);
+  padding: .35em .85em; border-radius: 6px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--card); color: var(--ink);
+  text-decoration: none; transition: border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); background: #fff8f7; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent2); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+
+/* ─── Grid Layout ────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+/* ─── Cards ──────────────────────────────────────────── */
+section {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  break-inside: avoid;
+}
+section h2 {
+  font-size: .85rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--mute); margin-bottom: .7rem;
+  display: flex; align-items: center; gap: .4rem;
+}
+section h2 .icon { font-style: normal; font-size: 1rem; }
+
+/* ─── Lists ──────────────────────────────────────────── */
+ul { list-style: none; padding: 0; }
+ul li {
+  font-size: .85rem; padding: .22rem 0;
+  border-bottom: 1px solid var(--line);
+  display: flex; gap: .5rem; align-items: baseline;
+}
+ul li:last-child { border-bottom: none; }
+ul li strong { flex-shrink: 0; min-width: 0; }
+.sub { color: var(--mute); font-size: .78rem; }
+
+/* ─── Code ───────────────────────────────────────────── */
+code {
+  font-family: var(--font-mono);
+  font-size: .78rem; background: var(--code-bg); color: var(--accent2);
+  padding: .1em .35em; border-radius: 4px;
+}
+.code-block {
+  font-family: var(--font-mono); font-size: .77rem;
+  background: var(--code-bg); border-radius: 6px;
+  padding: .55rem .75rem; margin: .35rem 0;
+  overflow-x: auto; color: var(--ink); line-height: 1.7;
+  white-space: pre; border-left: 3px solid var(--accent);
+}
+
+/* ─── Shortcuts Table ────────────────────────────────── */
+.shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .75rem; }
+.shortcuts li { border-bottom: 1px dotted var(--line); font-size: .82rem; padding: .18rem 0; display: flex; gap: .4rem; }
+kbd {
+  display: inline-block; font-family: var(--font-mono); font-size: .72rem;
+  background: var(--code-bg); border: 1px solid #ccc; border-radius: 4px;
+  padding: .05em .4em; line-height: 1.5; flex-shrink: 0; color: var(--ink);
+  white-space: nowrap;
+}
+
+/* ─── Concept Grid ───────────────────────────────────── */
+.concepts { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.concept {
+  background: var(--bg); border-radius: 6px;
+  padding: .55rem .7rem; font-size: .83rem;
+}
+.concept strong { display: block; font-size: .88rem; margin-bottom: .15rem; }
+
+/* ─── Triggers ───────────────────────────────────────── */
+.trigger-item { padding: .35rem 0; border-bottom: 1px solid var(--line); font-size: .84rem; }
+.trigger-item:last-child { border-bottom: none; }
+.trigger-label { font-weight: 700; display: flex; align-items: center; gap: .4rem; }
+.trigger-desc { color: var(--mute); font-size: .78rem; margin-top: .1rem; }
+
+/* ─── Nodes Table ────────────────────────────────────── */
+.node-list { display: grid; gap: .15rem; }
+.node-row { display: flex; gap: .5rem; align-items: baseline; font-size: .83rem; padding: .22rem 0; border-bottom: 1px solid var(--line); }
+.node-row:last-child { border-bottom: none; }
+.node-name { font-weight: 700; flex-shrink: 0; min-width: 8rem; }
+
+/* ─── Credentials ────────────────────────────────────── */
+.cred-item { padding: .3rem 0; border-bottom: 1px solid var(--line); font-size: .84rem; }
+.cred-item:last-child { border-bottom: none; }
+.cred-label { font-weight: 700; font-size: .85rem; }
+.cred-desc { color: var(--mute); font-size: .78rem; }
+
+/* ─── Tips ───────────────────────────────────────────── */
+.tip-list li { font-size: .83rem; padding: .28rem 0; border-bottom: 1px solid var(--line); }
+.tip-list li:last-child { border-bottom: none; }
+.tip-list li::before { content: "→"; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+
+/* ─── Resources ──────────────────────────────────────── */
+.resource-list li { font-size: .83rem; padding: .25rem 0; }
+.resource-list a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+.resource-list a:hover { text-decoration: underline; }
+
+/* ─── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 1.5rem; padding-top: .75rem; border-top: 1px solid var(--line);
+  font-size: .75rem; color: var(--faint); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;
+}
+
+/* ─── Mobile ─────────────────────────────────────────── */
+@media (max-width: 700px) {
+  body { padding: 1rem .75rem 2.5rem; }
+  main { grid-template-columns: 1fr; }
+  .shortcuts { grid-template-columns: 1fr; }
+  .concepts { grid-template-columns: 1fr; }
+  .node-name { min-width: 6.5rem; }
+}
+
+/* ─── Print ──────────────────────────────────────────── */
+@page { size: A4; margin: 12mm; }
+@media print {
+  html { font-size: 9.5pt; background: #fff; }
+  body { max-width: 100%; padding: 0; }
+  .no-print, header .header-actions { display: none !important; }
+  header { margin-bottom: 6mm; padding-bottom: 3mm; }
+  .logo h1 { font-size: 14pt; }
+  main { display: block; columns: 2; column-gap: 7mm; orphans: 2; widows: 2; }
+  section {
+    break-inside: avoid; page-break-inside: avoid;
+    margin-bottom: 4mm; padding: 4mm 5mm;
+    border: 1px solid #ccc; border-radius: 0;
+    background: #fff !important;
+  }
+  section h2 { font-size: 7.5pt; margin-bottom: 2.5mm; }
+  ul li, .node-row, .trigger-item, .cred-item, .tip-list li, .resource-list li {
+    font-size: 7.5pt; padding: 1.2pt 0;
+  }
+  code { font-size: 7pt; background: #f0f0f0; border-radius: 2px; }
+  .code-block { font-size: 6.5pt; padding: 2mm 3mm; border-left-width: 2px; }
+  kbd { font-size: 6pt; padding: 0 2pt; }
+  .concept { background: #f8f8f8; padding: 2mm 3mm; }
+  .concept strong { font-size: 8pt; }
+  footer { display: none; }
+  a { color: #000 !important; text-decoration: none; }
+  .resource-list a::after { content: " (" attr(href) ")"; font-size: 6pt; color: #666; font-weight: 400; }
+  .shortcuts { grid-template-columns: 1fr 1fr; }
+  .concepts { grid-template-columns: 1fr 1fr; }
+  .node-name { min-width: 5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ HEADER ════════════════════════════════════════════ -->
+<header>
+  <div class="logo">
+    <h1>n<span>8</span>n <span class="ko">치트시트</span><span class="en">Cheat Sheet</span></h1>
+    <span class="badge">v1.0 · 2026-04</span>
+  </div>
+  <div class="header-actions no-print">
+    <button class="btn" id="lang-toggle" title="언어 전환 / Switch language">
+      <span class="ko">🇺🇸 English</span><span class="en">🇰🇷 한국어</span>
+    </button>
+    <button class="btn btn-primary" onclick="window.print()">🖨️ <span class="ko">출력</span><span class="en">Print</span></button>
+    <a class="btn" href="https://wikidocs.net/290950" target="_blank" rel="noopener">
+      <span class="ko">📖 전체 가이드</span><span class="en">📖 Full Guide</span>
+    </a>
+  </div>
+</header>
+
+<!-- ════ MAIN GRID ══════════════════════════════════════════ -->
+<main>
+
+  <!-- ① 시작하기 / Getting Started -->
+  <section>
+    <h2><i class="icon">🚀</i> <span class="ko">시작하기</span><span class="en">Getting Started</span></h2>
+    <ul>
+      <li>
+        <strong>Cloud</strong>
+        <span class="sub ko">n8n.io 가입 → 워크플로우 즉시 시작. 설치 불필요.</span>
+        <span class="sub en">Sign up at n8n.io → run workflows instantly. No setup.</span>
+      </li>
+      <li>
+        <strong>Docker</strong>
+        <span style="width:100%">
+          <div class="code-block">docker run -it --rm \
+  -p 5678:5678 \
+  -v n8n_data:/home/node/.n8n \
+  n8nio/n8n</div>
+          <span class="sub ko">→ <code>localhost:5678</code> 접속</span>
+          <span class="sub en">→ open <code>localhost:5678</code></span>
+        </span>
+      </li>
+      <li>
+        <strong>npm</strong>
+        <div class="code-block">npx n8n</div>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ② 핵심 개념 / Core Concepts -->
+  <section>
+    <h2><i class="icon">🧩</i> <span class="ko">핵심 개념</span><span class="en">Core Concepts</span></h2>
+    <div class="concepts">
+      <div class="concept">
+        <strong>Workflow</strong>
+        <span class="ko">노드들의 연결 흐름. 자동화의 단위.</span>
+        <span class="en">Connected flow of nodes. Unit of automation.</span>
+      </div>
+      <div class="concept">
+        <strong>Node</strong>
+        <span class="ko">하나의 작업 블록. 트리거·앱·로직.</span>
+        <span class="en">A single action block — trigger, app, or logic.</span>
+      </div>
+      <div class="concept">
+        <strong>Trigger</strong>
+        <span class="ko">워크플로우를 시작시키는 특수 노드.</span>
+        <span class="en">Special node that starts a workflow.</span>
+      </div>
+      <div class="concept">
+        <strong>Execution</strong>
+        <span class="ko">워크플로우가 한 번 실행된 것. 로그 확인 가능.</span>
+        <span class="en">One run of a workflow. Logs are stored.</span>
+      </div>
+      <div class="concept">
+        <strong>Item</strong>
+        <span class="ko">노드 사이를 흐르는 데이터 한 줄 (<code>$json</code>).</span>
+        <span class="en">One row of data flowing between nodes (<code>$json</code>).</span>
+      </div>
+      <div class="concept">
+        <strong>Credentials</strong>
+        <span class="ko">외부 서비스 인증 정보. 한 번 저장 후 재사용.</span>
+        <span class="en">Auth tokens/keys. Save once, reuse everywhere.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 단축키 / Shortcuts -->
+  <section>
+    <h2><i class="icon">⌨️</i> <span class="ko">필수 단축키</span><span class="en">Essential Shortcuts</span></h2>
+    <ul class="shortcuts">
+      <li><kbd>Tab</kbd> <span class="ko">노드 추가</span><span class="en">Add node</span></li>
+      <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> <span class="ko">워크플로우 실행</span><span class="en">Execute workflow</span></li>
+      <li><kbd>Ctrl</kbd>+<kbd>S</kbd> <span class="ko">저장</span><span class="en">Save</span></li>
+      <li><kbd>Ctrl</kbd>+<kbd>Z</kbd> <span class="ko">실행 취소</span><span class="en">Undo</span></li>
+      <li><kbd>Ctrl</kbd>+<kbd>A</kbd> <span class="ko">전체 선택</span><span class="en">Select all</span></li>
+      <li><kbd>Ctrl</kbd>+<kbd>C/V</kbd> <span class="ko">복사 / 붙여넣기</span><span class="en">Copy / Paste</span></li>
+      <li><kbd>D</kbd> <span class="ko">노드 복제</span><span class="en">Duplicate node</span></li>
+      <li><kbd>F2</kbd> <span class="ko">노드 이름 변경</span><span class="en">Rename node</span></li>
+      <li><kbd>Ctrl</kbd>+<kbd>F</kbd> <span class="ko">노드 검색</span><span class="en">Search nodes</span></li>
+      <li><kbd>Space</kbd>+<span class="ko">드래그</span><span class="en">drag</span> <span class="ko">캔버스 이동</span><span class="en">Pan canvas</span></li>
+      <li><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> <span class="ko">실행 목록</span><span class="en">Execution list</span></li>
+      <li><kbd>Esc</kbd> <span class="ko">패널 닫기</span><span class="en">Close panel</span></li>
+    </ul>
+  </section>
+
+  <!-- ④ 트리거 3종 / Triggers -->
+  <section>
+    <h2><i class="icon">⚡</i> <span class="ko">트리거 3종</span><span class="en">3 Core Triggers</span></h2>
+    <div class="trigger-item">
+      <div class="trigger-label">🖱️ Manual Trigger</div>
+      <div class="trigger-desc ko">버튼으로 직접 실행. 테스트·디버깅에 필수.</div>
+      <div class="trigger-desc en">Run manually with a button. Essential for testing.</div>
+    </div>
+    <div class="trigger-item">
+      <div class="trigger-label">🕐 Schedule Trigger</div>
+      <div class="trigger-desc ko">
+        크론 표현식으로 반복 실행.<br>
+        <code>0 9 * * 1-5</code> <span style="color:var(--mute)">= 평일 오전 9시</span>
+      </div>
+      <div class="trigger-desc en">
+        Run on a schedule via cron expression.<br>
+        <code>0 9 * * 1-5</code> <span style="color:var(--mute)">=  weekdays 9 AM</span>
+      </div>
+    </div>
+    <div class="trigger-item">
+      <div class="trigger-label">🌐 Webhook Trigger</div>
+      <div class="trigger-desc ko">
+        외부 HTTP 요청으로 실행. 고유 URL 자동 생성.<br>
+        <code>POST /webhook/&lt;uuid&gt;</code>로 데이터 수신.
+      </div>
+      <div class="trigger-desc en">
+        Triggered by external HTTP request. Auto URL.<br>
+        <code>POST /webhook/&lt;uuid&gt;</code> to receive data.
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑤ 핵심 노드 8개 / Core Nodes -->
+  <section>
+    <h2><i class="icon">🧱</i> <span class="ko">많이 쓰는 노드 8</span><span class="en">8 Must-Know Nodes</span></h2>
+    <div class="node-list">
+      <div class="node-row">
+        <span class="node-name">HTTP Request</span>
+        <span class="sub ko">외부 API 호출 (GET/POST/PUT…)</span>
+        <span class="sub en">Call any external API</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Edit Fields</span>
+        <span class="sub ko">필드 추가·수정·삭제 (구 Set 노드)</span>
+        <span class="sub en">Add / edit / remove fields (ex-Set node)</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">IF</span>
+        <span class="sub ko">조건 분기 → true / false 두 경로</span>
+        <span class="sub en">Condition → two output branches</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Filter</span>
+        <span class="sub ko">조건에 맞는 아이템만 통과</span>
+        <span class="sub en">Pass only items matching a condition</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Merge</span>
+        <span class="sub ko">두 브랜치를 하나로 합침</span>
+        <span class="sub en">Combine two branches into one</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Split Out</span>
+        <span class="sub ko">배열 → 개별 아이템으로 분리</span>
+        <span class="sub en">Array → individual items</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Code</span>
+        <span class="sub ko">JavaScript로 자유로운 데이터 처리</span>
+        <span class="sub en">Custom JS data transformation</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Loop Over Items</span>
+        <span class="sub ko">아이템 하나씩 순차 처리 (배치 실행)</span>
+        <span class="sub en">Process items one-by-one in batches</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 표현식 / Expressions -->
+  <section>
+    <h2><i class="icon">✏️</i> <span class="ko">표현식 기본</span><span class="en">Expression Basics</span></h2>
+    <ul>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.field }}</div>
+          <span class="sub ko">현재 아이템 필드 접근</span>
+          <span class="sub en">Access current item field</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $node["노드명"].json.field }}</div>
+          <span class="sub ko">특정 노드 출력 참조</span>
+          <span class="sub en">Reference a specific node's output</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $now.toFormat('yyyy-MM-dd') }}</div>
+          <span class="sub ko">오늘 날짜 포맷 (Luxon 사용)</span>
+          <span class="sub en">Format today's date (uses Luxon)</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.score > 80 ? '합격' : '불합격' }}</div>
+          <span class="sub ko">삼항 조건 (true값 : false값)</span>
+          <span class="sub en">Ternary condition</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $input.all().length }}</div>
+          <span class="sub ko">전체 아이템 개수 반환</span>
+          <span class="sub en">Total number of input items</span>
+        </span>
+      </li>
+    </ul>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">💡 노드 파라미터 창에서 <code>{{ }}</code> 입력 시 표현식 모드 활성화</span>
+      <span class="en">💡 Type <code>{{ }}</code> in any node field to enable expression mode</span>
+    </p>
+  </section>
+
+  <!-- ⑦ 자격 증명 / Credentials -->
+  <section>
+    <h2><i class="icon">🔐</i> <span class="ko">자격 증명(Credentials)</span><span class="en">Credentials</span></h2>
+    <div class="cred-item">
+      <div class="cred-label">API Key</div>
+      <div class="cred-desc ko">헤더/쿼리로 키를 전달. Header: <code>Authorization: Bearer …</code></div>
+      <div class="cred-desc en">Pass key via header/query. <code>Authorization: Bearer …</code></div>
+    </div>
+    <div class="cred-item">
+      <div class="cred-label">OAuth2</div>
+      <div class="cred-desc ko">Google·Slack 등. n8n이 토큰 갱신 자동 처리.</div>
+      <div class="cred-desc en">Google, Slack etc. n8n auto-refreshes tokens.</div>
+    </div>
+    <div class="cred-item">
+      <div class="cred-label">환경 변수 / Env Var</div>
+      <div class="cred-desc ko">민감 정보를 <code>N8N_CUSTOM_ENV</code>로 주입 후 표현식에서 <code>{{ $env.VAR }}</code> 사용.</div>
+      <div class="cred-desc en">Inject secrets as env vars, use <code>{{ $env.VAR }}</code> in expressions.</div>
+    </div>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">📍 등록 위치: 우측 상단 → Credentials → New</span>
+      <span class="en">📍 Where: top-right menu → Credentials → New</span>
+    </p>
+  </section>
+
+  <!-- ⑧ 에러 처리 / Error Handling -->
+  <section>
+    <h2><i class="icon">🛡️</i> <span class="ko">에러 처리 3가지</span><span class="en">Error Handling × 3</span></h2>
+    <ul>
+      <li>
+        <strong>Retry on Fail</strong>
+        <span class="sub ko">실패 시 자동 재시도 (횟수·간격 설정 가능)</span>
+        <span class="sub en">Auto-retry on failure (set count &amp; interval)</span>
+      </li>
+      <li>
+        <strong>Continue on Fail</strong>
+        <span class="sub ko">에러 아이템을 <code>error</code> 필드로 넘겨 계속 진행</span>
+        <span class="sub en">Pass failed items with <code>error</code> field, keep going</span>
+      </li>
+      <li>
+        <strong>Error Trigger</strong>
+        <span class="sub ko">별도 에러 전용 워크플로우 연결. Slack·이메일 알림에 활용.</span>
+        <span class="sub en">Link a dedicated error workflow for Slack/email alerts.</span>
+      </li>
+    </ul>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">📍 노드 설정 → Settings 탭에서 Retry/Continue 활성화</span>
+      <span class="en">📍 Node → Settings tab to enable Retry / Continue</span>
+    </p>
+  </section>
+
+  <!-- ⑨ 초보자 팁 / Beginner Tips -->
+  <section>
+    <h2><i class="icon">💡</i> <span class="ko">초보자 팁 5</span><span class="en">5 Beginner Tips</span></h2>
+    <ul class="tip-list">
+      <li>
+        <span class="ko"><strong>Pinned Data</strong>로 실제 API 응답을 고정해두면 매번 외부 호출 없이 노드를 테스트할 수 있어요.</span>
+        <span class="en"><strong>Pin Data</strong> on a node to test downstream without re-calling the API every time.</span>
+      </li>
+      <li>
+        <span class="ko"><strong>Execute Once</strong>를 켜면 아이템이 여러 개여도 노드를 딱 한 번만 실행합니다 (알림 발송 등).</span>
+        <span class="en">Enable <strong>Execute Once</strong> to run a node once regardless of item count (e.g. send notification).</span>
+      </li>
+      <li>
+        <span class="ko">큰 워크플로우는 작은 서브 워크플로우로 나누고 <strong>Execute Workflow</strong> 노드로 호출하세요.</span>
+        <span class="en">Split large workflows into sub-workflows and call them with <strong>Execute Workflow</strong>.</span>
+      </li>
+      <li>
+        <span class="ko">먼저 <strong>Manual Trigger</strong>로 만들고, 완성 후 Schedule/Webhook으로 교체하면 디버깅이 쉬워요.</span>
+        <span class="en">Build with <strong>Manual Trigger</strong> first, then swap to Schedule/Webhook once it works.</span>
+      </li>
+      <li>
+        <span class="ko"><strong>community.n8n.io</strong>의 템플릿 검색으로 비슷한 워크플로우를 찾아 시작점으로 활용하세요.</span>
+        <span class="en">Search <strong>n8n.io/workflows</strong> for templates — great starting points.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ⑩ 리소스 / Resources -->
+  <section>
+    <h2><i class="icon">🔗</i> <span class="ko">리소스</span><span class="en">Resources</span></h2>
+    <ul class="resource-list">
+      <li>📖 <a href="https://docs.n8n.io" target="_blank" rel="noopener"><span class="ko">공식 문서</span><span class="en">Official Docs</span></a> — docs.n8n.io</li>
+      <li>💬 <a href="https://community.n8n.io" target="_blank" rel="noopener"><span class="ko">커뮤니티 포럼</span><span class="en">Community Forum</span></a> — community.n8n.io</li>
+      <li>🎨 <a href="https://n8n.io/workflows" target="_blank" rel="noopener"><span class="ko">워크플로우 템플릿</span><span class="en">Workflow Templates</span></a> — n8n.io/workflows</li>
+      <li>📺 <a href="https://www.youtube.com/@datapopcorn" target="_blank" rel="noopener"><span class="ko">데이터팝콘 유튜브</span><span class="en">DataPopcorn YouTube</span></a></li>
+      <li>📝 <a href="https://wikidocs.net/290950" target="_blank" rel="noopener"><span class="ko">전체 가이드 (위키독스)</span><span class="en">Full Korean Guide (Wikidocs)</span></a></li>
+    </ul>
+  </section>
+
+</main>
+
+<!-- ════ FOOTER ════════════════════════════════════════════ -->
+<footer>
+  <span>
+    <span class="ko">by <a href="https://datapopcorn.ai" style="color:var(--accent2);text-decoration:none;font-weight:600">데이터팝콘</a> · n8n 공식 글로벌 앰배서더</span>
+    <span class="en">by <a href="https://datapopcorn.ai" style="color:var(--accent2);text-decoration:none;font-weight:600">DataPopcorn</a> · Official n8n Ambassador</span>
+  </span>
+  <span style="color:var(--faint)">
+    <span class="ko">인쇄 팁: Cmd/Ctrl+P → A4 · 배경 그래픽 OFF → 정확히 2장</span>
+    <span class="en">Print tip: Cmd/Ctrl+P → A4 · No background graphics → fits 2 pages</span>
+  </span>
+</footer>
+
+<script>
+(function() {
+  // 저장된 언어 복원
+  const saved = localStorage.getItem('n8n-cs-lang');
+  if (saved === 'en') document.documentElement.lang = 'en';
+
+  document.getElementById('lang-toggle').addEventListener('click', function() {
+    const next = document.documentElement.lang === 'ko' ? 'en' : 'ko';
+    document.documentElement.lang = next;
+    localStorage.setItem('n8n-cs-lang', next);
+  });
+})();
+</script>
+</body>
+</html>
