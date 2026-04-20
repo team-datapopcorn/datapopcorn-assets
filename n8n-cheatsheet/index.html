@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-mode="simple">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>n8n Cheat Sheet · 데이터팝콘</title>
-<meta name="description" content="n8n 초보자를 위한 핵심 치트시트. 트리거·노드·표현식·단축키를 한 장에. A4 출력 최적화.">
+<meta name="description" content="n8n 초보자~중급자용 치트시트. 트리거·노드·표현식·AI에이전트·Docker를 한 장에. A4 출력 최적화.">
 <meta property="og:title" content="n8n Cheat Sheet · 데이터팝콘">
-<meta property="og:description" content="n8n 초보자를 위한 핵심 치트시트. 트리거·노드·표현식·단축키를 한 장에.">
+<meta property="og:description" content="n8n 핵심 치트시트. 심플/심화 두 가지 뷰, 한국어·영어 토글, A4 프린트 지원.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#ff6d5a">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
@@ -21,6 +21,7 @@
   --card:   #ffffff;
   --accent: #ff6d5a;
   --accent2: #ea5c4a;
+  --adv-accent: #7c5cbf;
   --code-bg: #f0f0ee;
   --radius:  8px;
   --font-body: -apple-system, "Pretendard Variable", Pretendard, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -30,11 +31,34 @@
 /* ─── Reset & Base ─────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 15px; color: var(--ink); background: var(--bg); }
-body { font-family: var(--font-body); line-height: 1.6; padding: 1.5rem 1.25rem 3rem; max-width: 1100px; margin: 0 auto; }
+body { font-family: var(--font-body); line-height: 1.6; padding: 1.5rem 1.25rem 3rem; max-width: 1200px; margin: 0 auto; }
 
 /* ─── Language Toggle ─────────────────────────────────── */
 html[lang="en"] .ko { display: none; }
 html[lang="ko"] .en { display: none; }
+
+/* ─── Mode Toggle ─────────────────────────────────────── */
+html[data-mode="simple"] .adv { display: none !important; }
+html[data-mode="adv"] main { grid-template-columns: 1fr 1fr 1fr; }
+html[data-mode="adv"] .adv { display: block; }
+html[data-mode="adv"] .adv section { border-color: var(--adv-accent); }
+html[data-mode="adv"] .adv section h2 { color: var(--adv-accent); }
+
+.seg {
+  display: inline-flex; border: 1.5px solid var(--line); border-radius: 7px;
+  overflow: hidden; background: var(--card);
+}
+.seg-btn {
+  font-size: .8rem; font-weight: 700; font-family: var(--font-body);
+  padding: .32em .9em; cursor: pointer; border: none; background: transparent;
+  color: var(--mute); transition: background .15s, color .15s; white-space: nowrap;
+}
+.seg-btn + .seg-btn { border-left: 1.5px solid var(--line); }
+.seg-btn.active { background: var(--accent); color: #fff; }
+html[data-mode="adv"] .seg-btn.active-adv { background: var(--adv-accent); color: #fff; }
+html[data-mode="adv"] .seg-btn.active-simple { background: transparent; color: var(--mute); }
+html[data-mode="simple"] .seg-btn.active-simple { background: var(--accent); color: #fff; }
+html[data-mode="simple"] .seg-btn.active-adv { background: transparent; color: var(--mute); }
 
 /* ─── Header ─────────────────────────────────────────── */
 header {
@@ -45,16 +69,14 @@ header {
   border-bottom: 2px solid var(--accent);
 }
 .logo { display: flex; align-items: baseline; gap: .5rem; }
-.logo h1 {
-  font-size: 1.55rem; font-weight: 800; letter-spacing: -.03em;
-}
+.logo h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -.03em; }
 .logo h1 span { color: var(--accent); }
 .badge {
   font-size: .7rem; font-weight: 600; padding: .15em .55em;
   background: var(--code-bg); border-radius: 99px; color: var(--faint);
   border: 1px solid var(--line); font-family: var(--font-mono);
 }
-.header-actions { display: flex; align-items: center; gap: .5rem; }
+.header-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 .btn {
   display: inline-flex; align-items: center; gap: .3rem;
   font-size: .8rem; font-weight: 600; font-family: var(--font-body);
@@ -98,7 +120,7 @@ ul li {
   display: flex; gap: .5rem; align-items: baseline;
 }
 ul li:last-child { border-bottom: none; }
-ul li strong { flex-shrink: 0; min-width: 0; }
+ul li strong { flex-shrink: 0; }
 .sub { color: var(--mute); font-size: .78rem; }
 
 /* ─── Code ───────────────────────────────────────────── */
@@ -114,6 +136,8 @@ code {
   overflow-x: auto; color: var(--ink); line-height: 1.7;
   white-space: pre; border-left: 3px solid var(--accent);
 }
+.adv .code-block { border-left-color: var(--adv-accent); }
+.adv code { color: var(--adv-accent); }
 
 /* ─── Shortcuts Table ────────────────────────────────── */
 .shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .75rem; }
@@ -155,6 +179,7 @@ kbd {
 .tip-list li { font-size: .83rem; padding: .28rem 0; border-bottom: 1px solid var(--line); }
 .tip-list li:last-child { border-bottom: none; }
 .tip-list li::before { content: "→"; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+.adv .tip-list li::before { color: var(--adv-accent); }
 
 /* ─── Resources ──────────────────────────────────────── */
 .resource-list li { font-size: .83rem; padding: .25rem 0; }
@@ -164,16 +189,20 @@ kbd {
 /* ─── Footer ─────────────────────────────────────────── */
 footer {
   margin-top: 1.5rem; padding-top: .75rem; border-top: 1px solid var(--line);
-  font-size: .75rem; color: var(--faint); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;
+  font-size: .75rem; color: var(--faint);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;
 }
 
 /* ─── Mobile ─────────────────────────────────────────── */
 @media (max-width: 700px) {
   body { padding: 1rem .75rem 2.5rem; }
-  main { grid-template-columns: 1fr; }
+  main { grid-template-columns: 1fr !important; }
   .shortcuts { grid-template-columns: 1fr; }
   .concepts { grid-template-columns: 1fr; }
   .node-name { min-width: 6.5rem; }
+}
+@media (max-width: 1050px) {
+  html[data-mode="adv"] main { grid-template-columns: 1fr 1fr; }
 }
 
 /* ─── Print ──────────────────────────────────────────── */
@@ -184,19 +213,19 @@ footer {
   .no-print, header .header-actions { display: none !important; }
   header { margin-bottom: 6mm; padding-bottom: 3mm; }
   .logo h1 { font-size: 14pt; }
-  main { display: block; columns: 2; column-gap: 7mm; orphans: 2; widows: 2; }
+  main { display: block !important; columns: 2; column-gap: 7mm; orphans: 2; widows: 2; }
   section {
     break-inside: avoid; page-break-inside: avoid;
     margin-bottom: 4mm; padding: 4mm 5mm;
-    border: 1px solid #ccc; border-radius: 0;
+    border: 1px solid #ccc !important; border-radius: 0;
     background: #fff !important;
   }
-  section h2 { font-size: 7.5pt; margin-bottom: 2.5mm; }
+  section h2 { font-size: 7.5pt; margin-bottom: 2.5mm; color: #555 !important; }
   ul li, .node-row, .trigger-item, .cred-item, .tip-list li, .resource-list li {
     font-size: 7.5pt; padding: 1.2pt 0;
   }
-  code { font-size: 7pt; background: #f0f0f0; border-radius: 2px; }
-  .code-block { font-size: 6.5pt; padding: 2mm 3mm; border-left-width: 2px; }
+  code { font-size: 7pt; background: #f0f0f0; border-radius: 2px; color: #333 !important; }
+  .code-block { font-size: 6.5pt; padding: 2mm 3mm; border-left-width: 2px; border-left-color: #999 !important; }
   kbd { font-size: 6pt; padding: 0 2pt; }
   .concept { background: #f8f8f8; padding: 2mm 3mm; }
   .concept strong { font-size: 8pt; }
@@ -206,6 +235,7 @@ footer {
   .shortcuts { grid-template-columns: 1fr 1fr; }
   .concepts { grid-template-columns: 1fr 1fr; }
   .node-name { min-width: 5rem; }
+  .tip-list li::before { color: #333 !important; }
 }
 </style>
 </head>
@@ -215,9 +245,18 @@ footer {
 <header>
   <div class="logo">
     <h1>n<span>8</span>n <span class="ko">치트시트</span><span class="en">Cheat Sheet</span></h1>
-    <span class="badge">v1.0 · 2026-04</span>
+    <span class="badge">v1.1 · 2026-04</span>
   </div>
   <div class="header-actions no-print">
+    <!-- 심플 / 심화 세그먼트 -->
+    <div class="seg" role="group" aria-label="뷰 모드">
+      <button class="seg-btn active-simple" id="mode-simple">
+        <span class="ko">📄 심플</span><span class="en">📄 Basic</span>
+      </button>
+      <button class="seg-btn active-adv" id="mode-adv">
+        <span class="ko">🔬 심화</span><span class="en">🔬 Advanced</span>
+      </button>
+    </div>
     <button class="btn" id="lang-toggle" title="언어 전환 / Switch language">
       <span class="ko">🇺🇸 English</span><span class="en">🇰🇷 한국어</span>
     </button>
@@ -513,7 +552,7 @@ footer {
         <span class="en">Build with <strong>Manual Trigger</strong> first, then swap to Schedule/Webhook once it works.</span>
       </li>
       <li>
-        <span class="ko"><strong>community.n8n.io</strong>의 템플릿 검색으로 비슷한 워크플로우를 찾아 시작점으로 활용하세요.</span>
+        <span class="ko"><strong>n8n.io/workflows</strong>의 템플릿 검색으로 비슷한 워크플로우를 찾아 시작점으로 활용하세요.</span>
         <span class="en">Search <strong>n8n.io/workflows</strong> for templates — great starting points.</span>
       </li>
     </ul>
@@ -531,6 +570,229 @@ footer {
     </ul>
   </section>
 
+  <!-- ══ 심화 섹션 (adv) ═══════════════════════════════════ -->
+
+  <!-- A. AI 에이전트 / AI Agents -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🤖</i> <span class="ko">AI 에이전트</span><span class="en">AI Agents</span></h2>
+    <div class="node-list">
+      <div class="node-row">
+        <span class="node-name">AI Agent</span>
+        <span class="sub ko">LLM이 도구를 자율 선택·실행. 핵심 오케스트레이터.</span>
+        <span class="sub en">LLM autonomously picks &amp; runs tools.</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Chat Model</span>
+        <span class="sub ko">OpenAI / Anthropic / Gemini 등 LLM 연결.</span>
+        <span class="sub en">Connect OpenAI, Anthropic, Gemini, etc.</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Memory</span>
+        <span class="sub ko">Window / Vector Store로 대화 컨텍스트 유지.</span>
+        <span class="sub en">Window / Vector Store for conversation context.</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Tool</span>
+        <span class="sub ko">HTTP Request·Code·Workflow를 에이전트 도구로 등록.</span>
+        <span class="sub en">Register HTTP / Code / Workflow as agent tools.</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Vector Store</span>
+        <span class="sub ko">문서 임베딩 저장·검색 (RAG 파이프라인).</span>
+        <span class="sub en">Store &amp; search embeddings for RAG pipelines.</span>
+      </div>
+    </div>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">💡 노드 추가 → AI 카테고리에서 모두 확인 가능</span>
+      <span class="en">💡 Add node → AI category to browse all AI nodes</span>
+    </p>
+  </section>
+  </div>
+
+  <!-- B. 고급 표현식 / Advanced Expressions -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">✏️✚</i> <span class="ko">고급 표현식</span><span class="en">Advanced Expressions</span></h2>
+    <ul>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $input.all().map(i => i.json.name) }}</div>
+          <span class="sub ko">전체 아이템에서 name 배열 추출</span>
+          <span class="sub en">Extract name array from all items</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $input.all().filter(i => i.json.score > 80) }}</div>
+          <span class="sub ko">조건 필터링 (Code 노드 없이)</span>
+          <span class="sub en">Filter in-expression (no Code node needed)</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.tags.join(', ') }}</div>
+          <span class="sub ko">배열을 문자열로 합치기</span>
+          <span class="sub en">Join array to string</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $now.minus({ days: 7 }).toISO() }}</div>
+          <span class="sub ko">7일 전 ISO 타임스탬프 (Luxon)</span>
+          <span class="sub en">ISO timestamp 7 days ago (Luxon)</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.text?.replace(/\n/g, ' ') ?? '' }}</div>
+          <span class="sub ko">정규식 치환 + 옵셔널 체이닝</span>
+          <span class="sub en">Regex replace + optional chaining</span>
+        </span>
+      </li>
+    </ul>
+  </section>
+  </div>
+
+  <!-- C. 서브 워크플로우 / Sub-Workflows -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🔄</i> <span class="ko">서브 워크플로우</span><span class="en">Sub-Workflows</span></h2>
+    <div class="trigger-item">
+      <div class="trigger-label">Execute Workflow</div>
+      <div class="trigger-desc ko">다른 워크플로우를 호출하고 결과를 받아옴. 재사용 모듈화에 핵심.</div>
+      <div class="trigger-desc en">Call another workflow and receive its output. Key to modular design.</div>
+    </div>
+    <div class="trigger-item">
+      <div class="trigger-label">Execute Workflow Trigger</div>
+      <div class="trigger-desc ko">서브 워크플로우의 진입점. 부모에서 데이터를 받아 시작.</div>
+      <div class="trigger-desc en">Entry point for sub-workflows. Receives data from the caller.</div>
+    </div>
+    <div class="trigger-item">
+      <div class="trigger-label"><span class="ko">패턴</span><span class="en">Pattern</span></div>
+      <div class="trigger-desc ko">
+        <code>메인 워크플로우</code> → <code>Execute Workflow</code> → <code>서브: 데이터 정제</code><br>
+        공통 로직(알림, DB 저장)을 서브로 분리해 여러 워크플로우에서 재사용.
+      </div>
+      <div class="trigger-desc en">
+        <code>Main</code> → <code>Execute Workflow</code> → <code>Sub: data cleanse</code><br>
+        Extract shared logic (notify, save) into sub-workflows and reuse.
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <!-- D. 커뮤니티 노드 / Community Nodes -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">📦</i> <span class="ko">커뮤니티 노드</span><span class="en">Community Nodes</span></h2>
+    <div class="cred-item">
+      <div class="cred-label ko">설치 방법</div>
+      <div class="cred-label en">How to install</div>
+      <div class="cred-desc ko">Settings → Community Nodes → Install → npm 패키지명 입력</div>
+      <div class="cred-desc en">Settings → Community Nodes → Install → enter npm package name</div>
+    </div>
+    <div style="margin-top:.5rem">
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-browserless</span>
+        <span class="sub ko">브라우저 자동화·스크래핑</span>
+        <span class="sub en">Browser automation &amp; scraping</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-langchain</span>
+        <span class="sub ko">LangChain 연동 (내장 통합 전)</span>
+        <span class="sub en">LangChain integration</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-discord</span>
+        <span class="sub ko">Discord 메시지·이벤트 처리</span>
+        <span class="sub en">Discord messages &amp; events</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-firecrawl</span>
+        <span class="sub ko">웹 크롤링 → 마크다운 변환</span>
+        <span class="sub en">Web crawl → markdown conversion</span>
+      </div>
+    </div>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">⚠️ Self-hosted 환경에서만 설치 가능</span>
+      <span class="en">⚠️ Only available on self-hosted instances</span>
+    </p>
+  </section>
+  </div>
+
+  <!-- E. Docker 심화 / Docker Advanced -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🐳</i> <span class="ko">Docker 심화</span><span class="en">Docker Advanced</span></h2>
+    <ul>
+      <li>
+        <span style="width:100%">
+          <span class="sub ko" style="font-weight:700;color:var(--ink)">환경변수로 설정</span>
+          <span class="sub en" style="font-weight:700;color:var(--ink)">Configure via env vars</span>
+          <div class="code-block">-e N8N_BASIC_AUTH_ACTIVE=true \
+-e N8N_BASIC_AUTH_USER=admin \
+-e N8N_BASIC_AUTH_PASSWORD=secret \
+-e N8N_ENCRYPTION_KEY=yourkey32chars</div>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <span class="sub ko" style="font-weight:700;color:var(--ink)">버전 업그레이드</span>
+          <span class="sub en" style="font-weight:700;color:var(--ink)">Upgrade version</span>
+          <div class="code-block">docker pull n8nio/n8n
+docker stop n8n && docker rm n8n
+# 동일 run 커맨드 재실행</div>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <span class="sub ko" style="font-weight:700;color:var(--ink)">데이터 백업</span>
+          <span class="sub en" style="font-weight:700;color:var(--ink)">Backup data</span>
+          <div class="code-block">docker cp n8n:/home/node/.n8n ./n8n-backup</div>
+        </span>
+      </li>
+    </ul>
+  </section>
+  </div>
+
+  <!-- F. 보안 강화 / Security -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🔒</i> <span class="ko">보안 강화</span><span class="en">Security Hardening</span></h2>
+    <ul>
+      <li>
+        <strong class="ko">Encryption Key</strong>
+        <strong class="en">Encryption Key</strong>
+        <span class="sub ko">자격 증명 암호화 키. 반드시 백업. <code>N8N_ENCRYPTION_KEY</code> 환경변수.</span>
+        <span class="sub en">Encrypts stored credentials. Must back up. Set via <code>N8N_ENCRYPTION_KEY</code>.</span>
+      </li>
+      <li>
+        <strong>Basic Auth / SSO</strong>
+        <span class="sub ko">셀프 호스팅: Basic Auth or LDAP/SAML로 접근 제한.</span>
+        <span class="sub en">Self-hosted: restrict access via Basic Auth or LDAP/SAML.</span>
+      </li>
+      <li>
+        <strong>HTTPS</strong>
+        <span class="sub ko">Nginx 리버스 프록시 + Let's Encrypt 인증서 사용 권장.</span>
+        <span class="sub en">Use Nginx reverse proxy + Let's Encrypt certificate.</span>
+      </li>
+      <li>
+        <strong class="ko">Webhook IP 제한</strong>
+        <strong class="en">Webhook IP allow-list</strong>
+        <span class="sub ko"><code>N8N_ALLOWED_WEBHOOK_URLS</code> 또는 Nginx에서 특정 IP만 허용.</span>
+        <span class="sub en">Use <code>N8N_ALLOWED_WEBHOOK_URLS</code> or restrict at Nginx level.</span>
+      </li>
+      <li>
+        <strong class="ko">실행 데이터 보존 기간</strong>
+        <strong class="en">Execution data retention</strong>
+        <span class="sub ko"><code>EXECUTIONS_DATA_MAX_AGE</code>로 오래된 실행 로그 자동 삭제.</span>
+        <span class="sub en">Auto-delete old execution logs via <code>EXECUTIONS_DATA_MAX_AGE</code>.</span>
+      </li>
+    </ul>
+  </section>
+  </div>
+
 </main>
 
 <!-- ════ FOOTER ════════════════════════════════════════════ -->
@@ -540,21 +802,38 @@ footer {
     <span class="en">by <a href="https://datapopcorn.ai" style="color:var(--accent2);text-decoration:none;font-weight:600">DataPopcorn</a> · Official n8n Ambassador</span>
   </span>
   <span style="color:var(--faint)">
-    <span class="ko">인쇄 팁: Cmd/Ctrl+P → A4 · 배경 그래픽 OFF → 정확히 2장</span>
-    <span class="en">Print tip: Cmd/Ctrl+P → A4 · No background graphics → fits 2 pages</span>
+    <span class="ko">인쇄 팁: Cmd/Ctrl+P → A4 · 배경 그래픽 OFF → 심플 2장 / 심화 4장</span>
+    <span class="en">Print tip: Cmd/Ctrl+P → A4 · No background → Basic 2p / Advanced 4p</span>
   </span>
 </footer>
 
 <script>
 (function() {
-  // 저장된 언어 복원
-  const saved = localStorage.getItem('n8n-cs-lang');
-  if (saved === 'en') document.documentElement.lang = 'en';
+  const html = document.documentElement;
 
+  // 언어 복원
+  const savedLang = localStorage.getItem('n8n-cs-lang');
+  if (savedLang === 'en') html.lang = 'en';
+
+  // 모드 복원
+  const savedMode = localStorage.getItem('n8n-cs-mode');
+  if (savedMode === 'adv') html.dataset.mode = 'adv';
+
+  // 언어 토글
   document.getElementById('lang-toggle').addEventListener('click', function() {
-    const next = document.documentElement.lang === 'ko' ? 'en' : 'ko';
-    document.documentElement.lang = next;
+    const next = html.lang === 'ko' ? 'en' : 'ko';
+    html.lang = next;
     localStorage.setItem('n8n-cs-lang', next);
+  });
+
+  // 심플/심화 토글
+  document.getElementById('mode-simple').addEventListener('click', function() {
+    html.dataset.mode = 'simple';
+    localStorage.setItem('n8n-cs-mode', 'simple');
+  });
+  document.getElementById('mode-adv').addEventListener('click', function() {
+    html.dataset.mode = 'adv';
+    localStorage.setItem('n8n-cs-mode', 'adv');
   });
 })();
 </script>
