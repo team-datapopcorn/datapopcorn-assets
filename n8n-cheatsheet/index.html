@@ -309,6 +309,29 @@ footer {
 @media (max-width: 900px) { .nr-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 500px) { .nr-grid { grid-template-columns: 1fr; } }
 
+
+/* ─── Main Tab ───────────────────────────────────────── */
+.main-tab-bar {
+  display: flex; gap: 0; margin-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent);
+}
+.main-tab-btn {
+  font-size: .88rem; font-weight: 700; font-family: var(--font-body);
+  padding: .4em 1.4em; cursor: pointer;
+  border: none; border-radius: 6px 6px 0 0;
+  background: transparent; color: var(--mute);
+  transition: background .15s, color .15s;
+  border: 1px solid transparent; border-bottom: none;
+  margin-bottom: -2px;
+}
+.main-tab-btn.active {
+  background: var(--accent); color: #fff;
+  border-color: var(--accent);
+}
+.main-tab-btn:not(.active):hover { background: var(--code-bg); color: var(--ink); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
 </style>
 </head>
 <body>
@@ -339,7 +362,15 @@ footer {
   </div>
 </header>
 
+
+<!-- ════ MAIN TAB BAR ════════════════════════════════════ -->
+<div class="main-tab-bar">
+  <button class="main-tab-btn active" data-tab="cheatsheet">치트시트</button>
+  <button class="main-tab-btn" data-tab="noderef">핵심 노드</button>
+</div>
+
 <!-- ════ MAIN GRID ══════════════════════════════════════════ -->
+<div class="tab-pane active" id="tab-cheatsheet">
 <main>
 
   <!-- ① 시작하기 / Getting Started -->
@@ -868,6 +899,9 @@ docker stop n8n && docker rm n8n
 </main>
 
 
+</div><!-- #tab-cheatsheet -->
+
+<div class="tab-pane" id="tab-noderef">
 <!-- ════ 노드 아이콘 레퍼런스 ══════════════════════════════ -->
 <div class="node-ref-section">
   <h2 class="ref-title">n8n 핵심 노드 아이콘 레퍼런스</h2>
@@ -1361,6 +1395,8 @@ docker stop n8n && docker rm n8n
 
 </div>
 
+</div><!-- #tab-noderef -->
+
 <!-- ════ FOOTER ════════════════════════════════════════════ -->
 <footer>
   <span>
@@ -1375,6 +1411,25 @@ docker stop n8n && docker rm n8n
 
 <script>
 (function() {
+
+  // 탭 전환
+  document.querySelectorAll('.main-tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const target = this.dataset.tab;
+      document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('tab-' + target).classList.add('active');
+      localStorage.setItem('n8n-cs-tab', target);
+    });
+  });
+  // 탭 복원
+  const savedTab = localStorage.getItem('n8n-cs-tab');
+  if (savedTab) {
+    const btn = document.querySelector('.main-tab-btn[data-tab="' + savedTab + '"]');
+    if (btn) btn.click();
+  }
+
   const html = document.documentElement;
 
   // 언어 복원
