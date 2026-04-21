@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n8n 노드 플래시카드 · 데이터팝콘</title>
+<style>
+:root {
+  --bg: #f0f0ef;
+  --card: #fff;
+  --ink: #111;
+  --mute: #555;
+  --faint: #999;
+  --accent: #ff6d5a;
+  --radius: 16px;
+  --font: -apple-system, "Pretendard Variable", Pretendard, BlinkMacSystemFont, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 100vh; padding: 1rem;
+  gap: 1rem;
+}
+
+/* ── Header ── */
+.top-bar {
+  width: 100%; max-width: 520px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: .5rem;
+}
+.top-bar h1 { font-size: 1rem; font-weight: 800; color: var(--ink); }
+.top-bar h1 span { color: var(--accent); }
+.progress-text { font-size: .82rem; color: var(--mute); font-weight: 600; }
+
+/* ── Category filter ── */
+.cat-bar {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  width: 100%; max-width: 520px;
+}
+.cat-btn {
+  font-size: .72rem; font-weight: 700; padding: .25em .7em;
+  border-radius: 99px; border: 1.5px solid #ddd;
+  background: #fff; color: var(--mute);
+  cursor: pointer; transition: all .15s;
+}
+.cat-btn.active { color: #fff; border-color: transparent; }
+.cat-btn[data-cat="all"].active    { background: var(--accent); }
+.cat-btn[data-cat="trigger"].active { background: #FF6D5A; }
+.cat-btn[data-cat="data"].active    { background: #6366F1; }
+.cat-btn[data-cat="flow"].active    { background: #F59E0B; }
+.cat-btn[data-cat="wf"].active      { background: #7C3AED; }
+.cat-btn[data-cat="ai"].active      { background: #10B981; }
+.cat-btn[data-cat="app"].active     { background: #6B7280; }
+
+/* ── Flashcard ── */
+.card-wrapper {
+  width: 100%; max-width: 420px;
+  perspective: 1200px;
+  cursor: pointer;
+  user-select: none;
+}
+.card-inner {
+  position: relative;
+  width: 100%; height: 280px;
+  transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.4,0,.2,1);
+  border-radius: var(--radius);
+}
+.card-wrapper.flipped .card-inner { transform: rotateY(180deg); }
+
+.card-face {
+  position: absolute; inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+}
+.card-front {
+  background: var(--card);
+  border-top: 6px solid var(--cat-color, #ccc);
+}
+.card-back {
+  background: var(--card);
+  transform: rotateY(180deg);
+  align-items: flex-start; justify-content: flex-start;
+  border-top: 6px solid var(--cat-color, #ccc);
+  gap: .6rem;
+}
+
+/* Front */
+.card-icon-wrap {
+  width: 72px; height: 72px;
+  border-radius: 18px;
+  background: #f5f5f5;
+  border: 2px solid rgba(0,0,0,0.07);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: .75rem;
+}
+.card-icon-wrap svg { width: 36px; height: 36px; }
+.card-icon-wrap img { width: 40px; height: 40px; object-fit: contain; }
+.card-front-name {
+  font-size: 1.35rem; font-weight: 800; color: var(--ink);
+  text-align: center; line-height: 1.2;
+}
+.card-front-badge {
+  font-size: .72rem; font-weight: 700;
+  padding: .2em .65em; border-radius: 99px;
+  margin-top: .4rem;
+}
+.card-hint {
+  position: absolute; bottom: 1rem; left: 0; right: 0;
+  text-align: center; font-size: .7rem; color: var(--faint);
+}
+
+/* Back */
+.card-back-header { display: flex; align-items: center; gap: .75rem; width: 100%; }
+.card-back-icon-wrap {
+  width: 44px; height: 44px; min-width: 44px;
+  border-radius: 12px; background: #f5f5f5;
+  border: 1.5px solid rgba(0,0,0,0.07);
+  display: flex; align-items: center; justify-content: center;
+}
+.card-back-icon-wrap svg { width: 22px; height: 22px; }
+.card-back-icon-wrap img { width: 26px; height: 26px; object-fit: contain; }
+.card-back-name { font-size: 1.05rem; font-weight: 800; color: var(--ink); }
+.card-back-type { font-size: .72rem; color: var(--faint); font-family: ui-monospace, monospace; margin-top: .15rem; }
+.card-divider { width: 100%; height: 1px; background: #eee; }
+.card-back-desc { font-size: .88rem; color: var(--mute); line-height: 1.6; }
+.card-back-tip {
+  font-size: .8rem; color: #888;
+  background: #f9f9f7; border-radius: 8px;
+  padding: .5rem .75rem; line-height: 1.5;
+  border-left: 3px solid var(--accent);
+  width: 100%;
+}
+
+/* ── Nav ── */
+.nav-bar {
+  display: flex; align-items: center; gap: 1rem;
+  width: 100%; max-width: 420px;
+}
+.nav-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid #ddd; background: #fff;
+  font-size: 1.1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s; color: var(--ink); flex-shrink: 0;
+}
+.nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.nav-btn:disabled { opacity: .3; cursor: default; }
+.progress-bar-wrap {
+  flex: 1; height: 6px; background: #e0e0e0; border-radius: 99px; overflow: hidden;
+}
+.progress-bar { height: 100%; background: var(--accent); border-radius: 99px; transition: width .3s; }
+
+/* ── Keyboard hint ── */
+.kbd-hint {
+  font-size: .72rem; color: var(--faint); text-align: center;
+}
+.kbd-hint kbd {
+  font-family: ui-monospace, monospace; font-size: .68rem;
+  background: #fff; border: 1px solid #ddd; border-radius: 4px;
+  padding: .1em .4em;
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>n<span>8</span>n 핵심 노드 플래시카드</h1>
+  <span class="progress-text" id="progress-text">1 / 24</span>
+</div>
+
+<div class="cat-bar" id="cat-bar">
+  <button class="cat-btn active" data-cat="all">전체</button>
+  <button class="cat-btn" data-cat="trigger">트리거</button>
+  <button class="cat-btn" data-cat="data">데이터</button>
+  <button class="cat-btn" data-cat="flow">흐름제어</button>
+  <button class="cat-btn" data-cat="wf">워크플로우</button>
+  <button class="cat-btn" data-cat="ai">AI</button>
+  <button class="cat-btn" data-cat="app">앱 연동</button>
+</div>
+
+<div class="card-wrapper" id="card-wrapper" onclick="flipCard()">
+  <div class="card-inner" id="card-inner">
+    <div class="card-face card-front" id="card-front">
+      <div class="card-icon-wrap" id="front-icon"></div>
+      <div class="card-front-name" id="front-name"></div>
+      <div class="card-front-badge" id="front-badge"></div>
+      <div class="card-hint">탭하여 설명 보기 →</div>
+    </div>
+    <div class="card-face card-back" id="card-back">
+      <div class="card-back-header">
+        <div class="card-back-icon-wrap" id="back-icon"></div>
+        <div>
+          <div class="card-back-name" id="back-name"></div>
+          <div class="card-back-type" id="back-type"></div>
+        </div>
+      </div>
+      <div class="card-divider"></div>
+      <div class="card-back-desc" id="back-desc"></div>
+      <div class="card-back-tip" id="back-tip"></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav-bar">
+  <button class="nav-btn" id="btn-prev" onclick="navigate(-1)">←</button>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+  <button class="nav-btn" id="btn-next" onclick="navigate(1)">→</button>
+</div>
+
+<div class="kbd-hint">
+  <kbd>←</kbd><kbd>→</kbd> 이동 &nbsp;|&nbsp; <kbd>Space</kbd> 뒤집기 &nbsp;|&nbsp; <kbd>1</kbd>–<kbd>6</kbd> 카테고리
+</div>
+
+<script>
+const NODES = [
+  // ── 트리거
+  {
+    cat: 'trigger', catLabel: '트리거', catColor: '#FF6D5A',
+    name: 'Webhook',
+    type: 'n8n-nodes-base.webhook',
+    desc: '외부에서 HTTP 요청이 오면 워크플로우를 시작합니다. 폼 제출, 슬랙 봇, 외부 서비스 이벤트 수신에 사용합니다.',
+    tip: 'n8n이 고유 URL을 발급해 줌. 그 URL을 외부 서비스에 등록하면 끝.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><circle cx="12" cy="7" r="1.5" fill="currentColor" stroke="none"/><circle cx="6.5" cy="16.5" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.5" cy="16.5" r="1.5" fill="currentColor" stroke="none"/><path d="M15.2476 8.875C15.5892 8.28336 15.7512 7.63732 15.7506 6.99998C15.7494 5.70521 15.077 4.44635 13.875 3.75241C12.0814 2.71687 9.78794 3.3314 8.75241 5.125C7.71687 6.9186 8.3314 9.21206 10.125 10.2476L6.5 16.5"/><path d="M6.5 12.75C4.42893 12.75 2.75 14.4289 2.75 16.5C2.75 18.5711 4.42893 20.25 6.5 20.25C8.57107 20.25 10.25 18.5711 10.25 16.5H17.5"/><path d="M14.2524 18.375C15.2879 20.1686 17.5814 20.7831 19.375 19.7476C21.1686 18.7121 21.7831 16.4186 20.7476 14.625C19.7121 12.8314 17.4186 12.2169 15.625 13.2524L12 7"/></svg>`,
+    color: '#e91e63'
+  },
+  {
+    cat: 'trigger', catLabel: '트리거', catColor: '#FF6D5A',
+    name: 'Schedule Trigger',
+    type: 'n8n-nodes-base.scheduleTrigger',
+    desc: '정해진 시간 스케줄(크론)에 따라 자동으로 실행됩니다. 매일 오전 9시 보고서, 매주 월요일 집계 등에 사용합니다.',
+    tip: '"매일", "매시간", "매주" 등 자연어 선택 가능.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg>`,
+    color: '#FF9F43'
+  },
+  {
+    cat: 'trigger', catLabel: '트리거', catColor: '#FF6D5A',
+    name: 'Manual Trigger',
+    type: 'n8n-nodes-base.manualTrigger',
+    desc: 'n8n 화면의 "Test workflow" 버튼을 눌러 수동으로 실행합니다. 개발·테스트할 때 필수입니다.',
+    tip: '실제 운영 배포 시에는 다른 트리거로 교체.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12.586 12.586L19 19M3.688 3.037a.497.497 0 0 0-.651.651l6.5 15.999a.501.501 0 0 0 .947-.062l1.569-6.083a2 2 0 0 1 1.448-1.479l6.124-1.579a.5.5 0 0 0 .063-.947z"/></svg>`,
+    color: '#909399'
+  },
+  {
+    cat: 'trigger', catLabel: '트리거', catColor: '#FF6D5A',
+    name: 'Error Trigger',
+    type: 'n8n-nodes-base.errorTrigger',
+    desc: '다른 워크플로우에서 에러가 발생하면 이 워크플로우를 자동으로 실행합니다. 에러 알림·복구 자동화에 사용합니다.',
+    tip: '에러 발생 시 Slack/이메일로 담당자에게 자동 알림 전송 패턴.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="8.75"/><path d="M8.5 8.5L15.5 15.5M15.5 8.5L8.5 15.5"/></svg>`,
+    color: '#FF4949'
+  },
+  {
+    cat: 'trigger', catLabel: '트리거', catColor: '#FF6D5A',
+    name: 'Chat Trigger',
+    type: '@n8n/n8n-nodes-langchain.chatTrigger',
+    desc: '채팅 인터페이스를 제공하여 사용자가 채팅으로 워크플로우를 시작합니다. AI 에이전트와 함께 자주 사용합니다.',
+    tip: 'n8n이 자동으로 채팅 UI를 생성해 줌. 별도 개발 불필요.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M20.25 17.75C20.25 18.5784 19.5784 19.25 18.75 19.25H14.1302C13.8807 19.25 13.6351 19.3122 13.4157 19.4311L7.75 22.5V19.25H5.25C4.42157 19.25 3.75 18.5784 3.75 17.75V6.25C3.75 5.42157 4.42157 4.75 5.25 4.75H18.75C19.5784 4.75 20.25 5.42157 20.25 6.25V17.75Z"/></svg>`,
+    color: '#EA4B71'
+  },
+  // ── 데이터
+  {
+    cat: 'data', catLabel: '데이터', catColor: '#6366F1',
+    name: 'Edit Fields (Set)',
+    type: 'n8n-nodes-base.set',
+    desc: '데이터 필드를 추가·수정·삭제합니다. 값 이름을 바꾸거나, 고정값을 넣거나, 불필요 필드를 제거할 때 씁니다.',
+    tip: '워크플로우에서 가장 자주 쓰는 노드. 모든 데이터 정제 작업에 필수.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>`,
+    color: '#3A42E9'
+  },
+  {
+    cat: 'data', catLabel: '데이터', catColor: '#6366F1',
+    name: 'Code',
+    type: 'n8n-nodes-base.code',
+    desc: 'JavaScript 또는 Python 코드를 직접 작성합니다. 복잡한 계산, 문자열 처리, 날짜 변환 등 노드로 해결 안 되는 작업에 사용합니다.',
+    tip: 'AI가 코드를 생성해 주면 복붙. $input.all()로 이전 노드 데이터 접근.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9 3.75H6.25C5.42 3.75 4.75 4.42 4.75 5.25V9.38C4.75 9.78 4.59 10.16 4.31 10.44L2.75 12L4.31 13.56C4.59 13.84 4.75 14.22 4.75 14.62V18.75C4.75 19.58 5.42 20.25 6.25 20.25H9"/><path d="M15 3.75H17.75C18.58 3.75 19.25 4.42 19.25 5.25V9.38C19.25 9.78 19.41 10.16 19.69 10.44L21.25 12L19.69 13.56C19.41 13.84 19.25 14.22 19.25 14.62V18.75C19.25 19.58 18.58 20.25 17.75 20.25H15"/></svg>`,
+    color: '#FF9922'
+  },
+  {
+    cat: 'data', catLabel: '데이터', catColor: '#6366F1',
+    name: 'HTTP Request',
+    type: 'n8n-nodes-base.httpRequest',
+    desc: '외부 REST API를 호출합니다. n8n에 기본 연동 노드가 없는 서비스도 이 노드로 연결할 수 있습니다.',
+    tip: 'GET/POST/PUT/DELETE 지원. API Key·Bearer Token 인증 설정 가능.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="8.75"/><ellipse cx="12" cy="12" rx="3.75" ry="8.75"/><path d="M3 12H21"/></svg>`,
+    color: '#3A42E9'
+  },
+  // ── 흐름제어
+  {
+    cat: 'flow', catLabel: '흐름제어', catColor: '#F59E0B',
+    name: 'IF',
+    type: 'n8n-nodes-base.if',
+    desc: '조건에 따라 흐름을 두 갈래(True/False)로 나눕니다. "상태가 승인이면 A, 아니면 B" 같은 분기에 사용합니다.',
+    tip: 'True/False 두 개의 출력 연결점이 생김.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 13v8m0-18v3M4 6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h13a2 2 0 0 0 1.152-.365l3.424-2.317a1 1 0 0 0 0-1.635l-3.424-2.318A2 2 0 0 0 17 6z"/></svg>`,
+    color: '#5BA4F5'
+  },
+  {
+    cat: 'flow', catLabel: '흐름제어', catColor: '#F59E0B',
+    name: 'Switch',
+    type: 'n8n-nodes-base.switch',
+    desc: '여러 조건에 따라 3개 이상의 경로로 분기합니다. 부서별·유형별로 다르게 처리할 때 IF 대신 사용합니다.',
+    tip: '조건이 3개 이상이면 IF 대신 Switch가 더 깔끔함.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 13v8m0-18v3M4 6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h13a2 2 0 0 0 1.152-.365l3.424-2.317a1 1 0 0 0 0-1.635l-3.424-2.318A2 2 0 0 0 17 6z"/></svg>`,
+    color: '#5BA4F5'
+  },
+  {
+    cat: 'flow', catLabel: '흐름제어', catColor: '#F59E0B',
+    name: 'Merge',
+    type: 'n8n-nodes-base.merge',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Merge/merge.svg',
+    desc: '여러 경로에서 온 데이터를 하나로 합칩니다. 두 API 결과를 합치거나, 분기된 흐름을 다시 합칠 때 사용합니다.',
+    tip: 'Combine(합치기), Append(이어붙이기), Wait(모두 도착 후) 등 방식 선택 가능.',
+    color: '#54B8C9'
+  },
+  {
+    cat: 'flow', catLabel: '흐름제어', catColor: '#F59E0B',
+    name: 'Loop Over Items',
+    type: 'n8n-nodes-base.splitInBatches',
+    desc: '많은 데이터를 한 번에 처리하지 않고 N개씩 나눠서 반복 처리합니다. 대용량 처리, API 호출 제한 우회에 사용합니다.',
+    tip: '100개 항목을 10개씩 10번 나눠서 처리하는 루프.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9a9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5m5 4a9 9 0 0 1-9 9a9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>`,
+    color: '#19A97B'
+  },
+  {
+    cat: 'flow', catLabel: '흐름제어', catColor: '#F59E0B',
+    name: 'Wait',
+    type: 'n8n-nodes-base.wait',
+    desc: '일정 시간 대기하거나, 특정 시각 또는 외부 신호(Webhook)를 받을 때까지 흐름을 중단합니다.',
+    tip: '이메일 발송 후 1시간 대기, 그 후 후속 조치 자동화에 활용.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M18.25 20.25H5.75V17.62C5.75 17.22 5.91 16.84 6.19 16.56L9.9 12.85C10.12 12.63 10.25 12.32 10.25 12C10.25 11.68 10.12 11.37 9.9 11.15L6.19 7.44C5.91 7.16 5.75 6.78 5.75 6.38V3.75H18.25V6.38C18.25 6.78 18.09 7.16 17.81 7.44L14.1 11.15C13.88 11.37 13.75 11.68 13.75 12C13.75 12.32 13.88 12.63 14.1 12.85L17.81 16.56C18.09 16.84 18.25 17.22 18.25 17.62V20.25Z"/></svg>`,
+    color: '#909399'
+  },
+  {
+    cat: 'flow', catLabel: '흐름제어', catColor: '#F59E0B',
+    name: 'Stop and Error',
+    type: 'n8n-nodes-base.stopAndError',
+    desc: '워크플로우를 강제로 중단하고 에러 메시지를 남깁니다. 필수 데이터가 없거나 조건 미충족 시 명시적으로 실패 처리할 때 사용합니다.',
+    tip: '에러 메시지 직접 지정 가능. Error Trigger 워크플로우와 연계.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><circle cx="12" cy="12" r="8.75"/><path d="M5.82 5.82L18.18 18.18"/></svg>`,
+    color: '#FF4949'
+  },
+  {
+    cat: 'flow', catLabel: '흐름제어', catColor: '#F59E0B',
+    name: 'No Operation',
+    type: 'n8n-nodes-base.noOp',
+    desc: '아무 작업도 하지 않고 데이터를 그대로 통과시킵니다. IF 노드 분기 중 연결할 곳이 없을 때 임시 연결점으로 사용합니다.',
+    tip: '흐름 제어용 플레이스홀더. 실행에 영향 없음.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M2.5 12H15.5"/><path d="M14 19.5L21.5 12L14 4.5"/><path d="M8 19.5L15.5 12L8 4.5"/></svg>`,
+    color: '#94A3B8'
+  },
+  // ── 워크플로우
+  {
+    cat: 'wf', catLabel: '워크플로우', catColor: '#7C3AED',
+    name: 'Execute Sub-workflow',
+    type: 'n8n-nodes-base.executeWorkflow',
+    desc: '다른 워크플로우를 호출(실행)합니다. 공통 로직을 별도 워크플로우로 분리하고 여러 곳에서 재사용할 때 사용합니다.',
+    tip: '"슬랙 알림 보내기" 워크플로우를 만들어두고 여러 워크플로우에서 호출.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M8 20.25L5.25 20.25C4.42 20.25 3.75 19.58 3.75 18.75L3.75 5.25C3.75 4.42 4.42 3.75 5.25 3.75L8 3.75"/><path d="M15 17.5L20.5 12L15 6.5"/><path d="M20.5 12L7 12"/></svg>`,
+    color: '#4F46E5'
+  },
+  {
+    cat: 'wf', catLabel: '워크플로우', catColor: '#7C3AED',
+    name: 'Sticky Note',
+    type: 'n8n-nodes-base.stickyNote',
+    desc: '워크플로우 캔버스에 메모를 남깁니다. 노드 구간에 설명을 달아 팀원들이 이해하기 쉽게 합니다.',
+    tip: '실제 실행에는 영향 없는 순수 주석 노드. 색상 변경 가능.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M4 4H20V16L14 20H4V4Z" stroke-linejoin="round"/><path d="M14 16V20M14 16H20"/><path d="M8 9H16M8 12H13"/></svg>`,
+    color: '#EAB308'
+  },
+  // ── AI
+  {
+    cat: 'ai', catLabel: 'AI', catColor: '#10B981',
+    name: 'AI Agent',
+    type: '@n8n/n8n-nodes-langchain.agent',
+    desc: 'LLM이 도구(Tool)를 스스로 선택해 가며 작업을 수행하는 에이전트입니다. Chat Trigger와 함께 사용해 챗봇을 만들 수 있습니다.',
+    tip: '아래에 LLM 모델 노드(OpenAI 등)와 Tool 노드를 연결해서 구성.',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2m16 0h2m-7-1v2m-6-2v2"/></svg>`,
+    color: '#EA4B71'
+  },
+  {
+    cat: 'ai', catLabel: 'AI', catColor: '#10B981',
+    name: 'OpenAI',
+    type: 'n8n-nodes-base.openAi',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/OpenAi/openAi.svg',
+    desc: 'OpenAI GPT 모델을 직접 호출합니다. 텍스트 생성, 분류, 요약, 이미지 생성(DALL-E) 등에 사용합니다.',
+    tip: 'AI Agent 없이 단순 LLM 호출만 필요할 때 이 노드 사용.',
+    color: '#10B981'
+  },
+  // ── 앱 연동
+  {
+    cat: 'app', catLabel: '앱 연동', catColor: '#6B7280',
+    name: 'Gmail',
+    type: 'n8n-nodes-base.gmail',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Google/Gmail/gmail.svg',
+    desc: 'Gmail로 이메일을 보내거나 받은 메일을 읽습니다. 인사 공지, 면접 일정 안내, 자동 회신 등에 활용합니다.',
+    tip: 'OAuth2로 회사 계정 연결. CC/BCC, 첨부파일 모두 지원.',
+    color: '#6B7280'
+  },
+  {
+    cat: 'app', catLabel: '앱 연동', catColor: '#6B7280',
+    name: 'Google Sheets',
+    type: 'n8n-nodes-base.googleSheets',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Google/Sheet/googleSheets.svg',
+    desc: '구글 스프레드시트에서 데이터를 읽거나 씁니다. HR 데이터베이스, 설문 결과, 교육 이수 현황 관리에 활용합니다.',
+    tip: '행 추가·업데이트·삭제, 전체 시트 읽기 모두 가능.',
+    color: '#6B7280'
+  },
+  {
+    cat: 'app', catLabel: '앱 연동', catColor: '#6B7280',
+    name: 'Slack',
+    type: 'n8n-nodes-base.slack',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Slack/slack.svg',
+    desc: '슬랙 채널에 메시지를 보내거나, 슬랙 이벤트를 워크플로우 트리거로 사용합니다. 업무 알림 자동화의 핵심입니다.',
+    tip: '채용 확정 시 → 담당자 슬랙 알림 자동 발송 패턴.',
+    color: '#6B7280'
+  },
+  {
+    cat: 'app', catLabel: '앱 연동', catColor: '#6B7280',
+    name: 'Notion',
+    type: 'n8n-nodes-base.notion',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Notion/notion.svg',
+    desc: '노션 데이터베이스에 페이지를 추가하거나 조회합니다. 채용 현황, 온보딩 체크리스트, HR 문서 관리에 활용합니다.',
+    tip: '노션 DB를 HR 데이터 허브로 쓰고 n8n으로 자동 업데이트.',
+    color: '#6B7280'
+  },
+  {
+    cat: 'app', catLabel: '앱 연동', catColor: '#6B7280',
+    name: 'Microsoft Teams',
+    type: 'n8n-nodes-base.microsoftTeams',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Microsoft/Teams/teams.svg',
+    desc: 'MS Teams 채널에 메시지를 보냅니다. Teams를 사용하는 기업 환경에서 알림 자동화에 사용합니다.',
+    tip: 'O365 계정 OAuth2 연결 필요.',
+    color: '#6B7280'
+  },
+  {
+    cat: 'app', catLabel: '앱 연동', catColor: '#6B7280',
+    name: 'Microsoft Outlook',
+    type: 'n8n-nodes-base.microsoftOutlook',
+    imgSrc: 'https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Microsoft/Outlook/outlook.svg',
+    desc: 'Outlook 이메일을 보내거나 읽습니다. 사내 Exchange/O365 이메일로 자동 발송할 때 Gmail 대신 사용합니다.',
+    tip: 'O365 환경의 대기업에서 Gmail 대신 사용하는 이메일 노드.',
+    color: '#6B7280'
+  },
+];
+
+const CAT_BADGE = {
+  trigger: { label: '트리거',   bg: '#FEE2E2', color: '#DC2626' },
+  data:    { label: '데이터',   bg: '#DBEAFE', color: '#1D4ED8' },
+  flow:    { label: '흐름제어', bg: '#FEF3C7', color: '#D97706' },
+  wf:      { label: '워크플로우', bg: '#EDE9FE', color: '#6D28D9' },
+  ai:      { label: 'AI',      bg: '#D1FAE5', color: '#065F46' },
+  app:     { label: '앱 연동', bg: '#F3F4F6', color: '#374151' },
+};
+
+let filtered = [...NODES];
+let idx = 0;
+let flipped = false;
+
+function iconHtml(node, size = 'front') {
+  const sz = size === 'front' ? 36 : 22;
+  if (node.imgSrc) {
+    return `<img src="${node.imgSrc}" style="width:${sz+4}px;height:${sz+4}px;object-fit:contain">`;
+  }
+  return node.icon.replace(/width="\d+"/, `width="${sz}"`).replace(/height="\d+"/, `height="${sz}"`);
+}
+
+function render() {
+  if (!filtered.length) return;
+  const node = filtered[idx];
+  flipped = false;
+  document.getElementById('card-wrapper').classList.remove('flipped');
+
+  // colors
+  document.getElementById('card-front').style.setProperty('--cat-color', node.catColor);
+  document.getElementById('card-back').style.setProperty('--cat-color', node.catColor);
+
+  // front
+  const iconWrap = document.getElementById('front-icon');
+  iconWrap.style.color = node.color;
+  iconWrap.innerHTML = iconHtml(node, 'front');
+
+  document.getElementById('front-name').textContent = node.name;
+  const badge = document.getElementById('front-badge');
+  const b = CAT_BADGE[node.cat];
+  badge.textContent = b.label;
+  badge.style.background = b.bg;
+  badge.style.color = b.color;
+
+  // back
+  const backIcon = document.getElementById('back-icon');
+  backIcon.style.color = node.color;
+  backIcon.innerHTML = iconHtml(node, 'back');
+
+  document.getElementById('back-name').textContent = node.name;
+  document.getElementById('back-type').textContent = node.type;
+  document.getElementById('back-desc').textContent = node.desc;
+  document.getElementById('back-tip').textContent = '💡 ' + node.tip;
+
+  // progress
+  const total = filtered.length;
+  document.getElementById('progress-text').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('progress-bar').style.width = `${((idx + 1) / total) * 100}%`;
+  document.getElementById('btn-prev').disabled = idx === 0;
+  document.getElementById('btn-next').disabled = idx === total - 1;
+}
+
+function flipCard() {
+  flipped = !flipped;
+  document.getElementById('card-wrapper').classList.toggle('flipped', flipped);
+}
+
+function navigate(dir) {
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= filtered.length) return;
+  idx = newIdx;
+  render();
+}
+
+function filterCat(cat) {
+  filtered = cat === 'all' ? [...NODES] : NODES.filter(n => n.cat === cat);
+  idx = 0;
+  render();
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+}
+
+document.getElementById('cat-bar').addEventListener('click', e => {
+  if (e.target.classList.contains('cat-btn')) filterCat(e.target.dataset.cat);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') navigate(1);
+  else if (e.key === 'ArrowLeft') navigate(-1);
+  else if (e.key === ' ') { e.preventDefault(); flipCard(); }
+  else if (e.key === '1') filterCat('trigger');
+  else if (e.key === '2') filterCat('data');
+  else if (e.key === '3') filterCat('flow');
+  else if (e.key === '4') filterCat('wf');
+  else if (e.key === '5') filterCat('ai');
+  else if (e.key === '6') filterCat('app');
+});
+
+render();
+</script>
+</body>
+</html>
