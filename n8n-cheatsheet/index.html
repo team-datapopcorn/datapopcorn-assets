@@ -1,640 +1,841 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-mode="simple">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>n8n 핵심 노드 레퍼런스 카드</title>
-  <style>
-    :root {
-      --bg: #f0f0f0;
-      --card-bg: #ffffff;
-      --border: #e0e0e0;
-      --text: #1a1a1a;
-      --sub: #555;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 32px 24px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n8n Cheat Sheet · 데이터팝콘</title>
+<meta name="description" content="n8n 초보자~중급자용 치트시트. 트리거·노드·표현식·AI에이전트·Docker를 한 장에. A4 출력 최적화.">
+<meta property="og:title" content="n8n Cheat Sheet · 데이터팝콘">
+<meta property="og:description" content="n8n 핵심 치트시트. 심플/심화 두 가지 뷰, 한국어·영어 토글, A4 프린트 지원.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ff6d5a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔗</text></svg>">
+<style>
+/* ─── Design Tokens ─────────────────────────────────────── */
+:root {
+  --ink:    #111;
+  --mute:   #555;
+  --faint:  #888;
+  --line:   #e3e3e3;
+  --bg:     #f7f7f6;
+  --card:   #ffffff;
+  --accent: #ff6d5a;
+  --accent2: #ea5c4a;
+  --adv-accent: #7c5cbf;
+  --code-bg: #f0f0ee;
+  --radius:  8px;
+  --font-body: -apple-system, "Pretendard Variable", Pretendard, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
+}
 
-    header { text-align: center; margin-bottom: 36px; }
-    header h1 { font-size: 26px; font-weight: 800; margin-bottom: 6px; }
-    header p { color: var(--sub); font-size: 14px; }
-    .n8n-badge {
-      display: inline-block;
-      background: #EA4B71; color: white;
-      font-weight: 900; font-size: 16px;
-      padding: 3px 10px; border-radius: 6px;
-      margin-bottom: 12px;
-    }
+/* ─── Reset & Base ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; color: var(--ink); background: var(--bg); }
+body { font-family: var(--font-body); line-height: 1.6; padding: 1.5rem 1.25rem 3rem; max-width: 1200px; margin: 0 auto; }
 
-    .section { margin-bottom: 36px; }
-    .section-title {
-      font-size: 12px; font-weight: 700;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      color: #888; border-bottom: 2px solid var(--border);
-      padding-bottom: 8px; margin-bottom: 14px;
-    }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
-      gap: 12px;
-    }
+/* ─── Language Toggle ─────────────────────────────────── */
+html[lang="en"] .ko { display: none; }
+html[lang="ko"] .en { display: none; }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--cat-color, #ccc);
-      border-radius: 12px;
-      padding: 14px 14px 14px 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      display: flex; gap: 12px; align-items: flex-start;
-    }
-    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
+/* ─── Mode Toggle ─────────────────────────────────────── */
+html[data-mode="simple"] .adv { display: none !important; }
+html[data-mode="adv"] main { grid-template-columns: 1fr 1fr 1fr; }
+html[data-mode="adv"] .adv { display: block; }
+html[data-mode="adv"] .adv section { border-color: var(--adv-accent); }
+html[data-mode="adv"] .adv section h2 { color: var(--adv-accent); }
 
-    /* 아이콘 래퍼 — 흰 배경 + 테두리 */
-    .icon-wrap {
-      width: 52px; height: 52px; min-width: 52px;
-      border-radius: 12px;
-      background: #fff;
-      border: 1.5px solid rgba(0,0,0,0.10);
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-    }
+.seg {
+  display: inline-flex; border: 1.5px solid var(--line); border-radius: 7px;
+  overflow: hidden; background: var(--card);
+}
+.seg-btn {
+  font-size: .8rem; font-weight: 700; font-family: var(--font-body);
+  padding: .32em .9em; cursor: pointer; border: none; background: transparent;
+  color: var(--mute); transition: background .15s, color .15s; white-space: nowrap;
+}
+.seg-btn + .seg-btn { border-left: 1.5px solid var(--line); }
+.seg-btn.active { background: var(--accent); color: #fff; }
+html[data-mode="adv"] .seg-btn.active-adv { background: var(--adv-accent); color: #fff; }
+html[data-mode="adv"] .seg-btn.active-simple { background: transparent; color: var(--mute); }
+html[data-mode="simple"] .seg-btn.active-simple { background: var(--accent); color: #fff; }
+html[data-mode="simple"] .seg-btn.active-adv { background: transparent; color: var(--mute); }
 
-    /* 인라인 SVG 아이콘 — color 속성 상속 */
-    .node-svg {
-      width: 28px; height: 28px;
-      flex-shrink: 0;
-      overflow: visible;
-    }
-    .node-svg path, .node-svg circle, .node-svg rect, .node-svg line {
-      stroke: currentColor;
-    }
-    .node-svg [fill="currentColor"] {
-      fill: currentColor;
-      stroke: none;
-    }
+/* ─── Header ─────────────────────────────────────────── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: .75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--accent);
+}
+.logo { display: flex; align-items: baseline; gap: .5rem; }
+.logo h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -.03em; }
+.logo h1 span { color: var(--accent); }
+.badge {
+  font-size: .7rem; font-weight: 600; padding: .15em .55em;
+  background: var(--code-bg); border-radius: 99px; color: var(--faint);
+  border: 1px solid var(--line); font-family: var(--font-mono);
+}
+.header-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.btn {
+  display: inline-flex; align-items: center; gap: .3rem;
+  font-size: .8rem; font-weight: 600; font-family: var(--font-body);
+  padding: .35em .85em; border-radius: 6px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--card); color: var(--ink);
+  text-decoration: none; transition: border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--accent); background: #fff8f7; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent2); }
+.btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
 
-    /* 브랜드 이미지 아이콘 (Gmail, Notion 등) */
-    .brand-img {
-      width: 32px; height: 32px;
-      object-fit: contain;
-    }
+/* ─── Grid Layout ────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
 
-    .card-body { flex: 1; min-width: 0; }
-    .card-name {
-      font-size: 14px; font-weight: 700;
-      margin-bottom: 2px; line-height: 1.3;
-    }
-    .card-type {
-      font-size: 10px; color: #bbb;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      margin-bottom: 5px;
-    }
-    .card-desc { font-size: 12.5px; color: var(--sub); line-height: 1.5; }
-    .card-tip {
-      font-size: 11.5px; color: #888;
-      margin-top: 6px; padding-top: 6px;
-      border-top: 1px dashed #eee; line-height: 1.4;
-    }
+/* ─── Cards ──────────────────────────────────────────── */
+section {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  break-inside: avoid;
+}
+section h2 {
+  font-size: .85rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--mute); margin-bottom: .7rem;
+  display: flex; align-items: center; gap: .4rem;
+}
+section h2 .icon { font-style: normal; font-size: 1rem; }
 
-    .badge {
-      display: inline-block; font-size: 10px; font-weight: 600;
-      padding: 1px 6px; border-radius: 4px; vertical-align: middle; margin-left: 4px;
-    }
-    .badge-trigger { background:#FEE2E2; color:#DC2626; }
-    .badge-data    { background:#DBEAFE; color:#1D4ED8; }
-    .badge-flow    { background:#FEF3C7; color:#D97706; }
-    .badge-wf      { background:#EDE9FE; color:#6D28D9; }
-    .badge-ai      { background:#D1FAE5; color:#065F46; }
-    .badge-app     { background:#F3F4F6; color:#374151; }
+/* ─── Lists ──────────────────────────────────────────── */
+ul { list-style: none; padding: 0; }
+ul li {
+  font-size: .85rem; padding: .22rem 0;
+  border-bottom: 1px solid var(--line);
+  display: flex; gap: .5rem; align-items: baseline;
+}
+ul li:last-child { border-bottom: none; }
+ul li strong { flex-shrink: 0; }
+.sub { color: var(--mute); font-size: .78rem; }
 
-    .legend {
-      display: flex; flex-wrap: wrap; gap: 10px;
-      margin-bottom: 28px; padding: 12px 16px;
-      background: white; border-radius: 10px; border: 1px solid var(--border);
-    }
-    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #555; }
-    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+/* ─── Code ───────────────────────────────────────────── */
+code {
+  font-family: var(--font-mono);
+  font-size: .78rem; background: var(--code-bg); color: var(--accent2);
+  padding: .1em .35em; border-radius: 4px;
+}
+.code-block {
+  font-family: var(--font-mono); font-size: .77rem;
+  background: var(--code-bg); border-radius: 6px;
+  padding: .55rem .75rem; margin: .35rem 0;
+  overflow-x: auto; color: var(--ink); line-height: 1.7;
+  white-space: pre; border-left: 3px solid var(--accent);
+}
+.adv .code-block { border-left-color: var(--adv-accent); }
+.adv code { color: var(--adv-accent); }
 
-    table { width:100%; border-collapse:collapse; background:white; border-radius:12px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.07); font-size:13px; }
-    thead tr { background:#f8fafc; }
-    th { padding:12px 14px; text-align:left; border-bottom:2px solid #e2e8f0; font-weight:700; color:#374151; }
-    td { padding:9px 14px; color:#555; }
-    tr:nth-child(even) td { background:#fafafa; }
-    tr:not(:last-child) td { border-bottom:1px solid #f1f5f9; }
+/* ─── Shortcuts Table ────────────────────────────────── */
+.shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: .15rem .75rem; }
+.shortcuts li { border-bottom: 1px dotted var(--line); font-size: .82rem; padding: .18rem 0; display: flex; gap: .4rem; }
+kbd {
+  display: inline-block; font-family: var(--font-mono); font-size: .72rem;
+  background: var(--code-bg); border: 1px solid #ccc; border-radius: 4px;
+  padding: .05em .4em; line-height: 1.5; flex-shrink: 0; color: var(--ink);
+  white-space: nowrap;
+}
 
-    footer { text-align:center; margin-top:44px; font-size:12px; color:#aaa; }
-    footer a { color:#6366F1; }
-    @media print { body { background:white; padding:16px; } .section { page-break-inside:avoid; } }
-  </style>
+/* ─── Concept Grid ───────────────────────────────────── */
+.concepts { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.concept {
+  background: var(--bg); border-radius: 6px;
+  padding: .55rem .7rem; font-size: .83rem;
+}
+.concept strong { display: block; font-size: .88rem; margin-bottom: .15rem; }
+
+/* ─── Triggers ───────────────────────────────────────── */
+.trigger-item { padding: .35rem 0; border-bottom: 1px solid var(--line); font-size: .84rem; }
+.trigger-item:last-child { border-bottom: none; }
+.trigger-label { font-weight: 700; display: flex; align-items: center; gap: .4rem; }
+.trigger-desc { color: var(--mute); font-size: .78rem; margin-top: .1rem; }
+
+/* ─── Nodes Table ────────────────────────────────────── */
+.node-list { display: grid; gap: .15rem; }
+.node-row { display: flex; gap: .5rem; align-items: baseline; font-size: .83rem; padding: .22rem 0; border-bottom: 1px solid var(--line); }
+.node-row:last-child { border-bottom: none; }
+.node-name { font-weight: 700; flex-shrink: 0; min-width: 8rem; }
+
+/* ─── Credentials ────────────────────────────────────── */
+.cred-item { padding: .3rem 0; border-bottom: 1px solid var(--line); font-size: .84rem; }
+.cred-item:last-child { border-bottom: none; }
+.cred-label { font-weight: 700; font-size: .85rem; }
+.cred-desc { color: var(--mute); font-size: .78rem; }
+
+/* ─── Tips ───────────────────────────────────────────── */
+.tip-list li { font-size: .83rem; padding: .28rem 0; border-bottom: 1px solid var(--line); }
+.tip-list li:last-child { border-bottom: none; }
+.tip-list li::before { content: "→"; color: var(--accent); font-weight: 700; flex-shrink: 0; }
+.adv .tip-list li::before { color: var(--adv-accent); }
+
+/* ─── Resources ──────────────────────────────────────── */
+.resource-list li { font-size: .83rem; padding: .25rem 0; }
+.resource-list a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+.resource-list a:hover { text-decoration: underline; }
+
+/* ─── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 1.5rem; padding-top: .75rem; border-top: 1px solid var(--line);
+  font-size: .75rem; color: var(--faint);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .5rem;
+}
+
+/* ─── Mobile ─────────────────────────────────────────── */
+@media (max-width: 700px) {
+  body { padding: 1rem .75rem 2.5rem; }
+  main { grid-template-columns: 1fr !important; }
+  .shortcuts { grid-template-columns: 1fr; }
+  .concepts { grid-template-columns: 1fr; }
+  .node-name { min-width: 6.5rem; }
+}
+@media (max-width: 1050px) {
+  html[data-mode="adv"] main { grid-template-columns: 1fr 1fr; }
+}
+
+/* ─── Print ──────────────────────────────────────────── */
+@page { size: A4; margin: 12mm; }
+@media print {
+  html { font-size: 9.5pt; background: #fff; }
+  body { max-width: 100%; padding: 0; }
+  .no-print, header .header-actions { display: none !important; }
+  header { margin-bottom: 6mm; padding-bottom: 3mm; }
+  .logo h1 { font-size: 14pt; }
+  main { display: block !important; columns: 2; column-gap: 7mm; orphans: 2; widows: 2; }
+  section {
+    break-inside: avoid; page-break-inside: avoid;
+    margin-bottom: 4mm; padding: 4mm 5mm;
+    border: 1px solid #ccc !important; border-radius: 0;
+    background: #fff !important;
+  }
+  section h2 { font-size: 7.5pt; margin-bottom: 2.5mm; color: #555 !important; }
+  ul li, .node-row, .trigger-item, .cred-item, .tip-list li, .resource-list li {
+    font-size: 7.5pt; padding: 1.2pt 0;
+  }
+  code { font-size: 7pt; background: #f0f0f0; border-radius: 2px; color: #333 !important; }
+  .code-block { font-size: 6.5pt; padding: 2mm 3mm; border-left-width: 2px; border-left-color: #999 !important; }
+  kbd { font-size: 6pt; padding: 0 2pt; }
+  .concept { background: #f8f8f8; padding: 2mm 3mm; }
+  .concept strong { font-size: 8pt; }
+  footer { display: none; }
+  a { color: #000 !important; text-decoration: none; }
+  .resource-list a::after { content: " (" attr(href) ")"; font-size: 6pt; color: #666; font-weight: 400; }
+  .shortcuts { grid-template-columns: 1fr 1fr; }
+  .concepts { grid-template-columns: 1fr 1fr; }
+  .node-name { min-width: 5rem; }
+  .tip-list li::before { color: #333 !important; }
+}
+</style>
 </head>
 <body>
 
+<!-- ════ HEADER ════════════════════════════════════════════ -->
 <header>
-  <div class="n8n-badge">n8n</div>
-  <h1>핵심 노드 레퍼런스 카드</h1>
-  <p>아이콘으로 노드 한눈에 파악하기 · n8n 핵심 노드 가이드</p>
+  <div class="logo">
+    <h1>n<span>8</span>n <span class="ko">치트시트</span><span class="en">Cheat Sheet</span></h1>
+    <span class="badge">v1.1 · 2026-04</span>
+  </div>
+  <div class="header-actions no-print">
+    <!-- 심플 / 심화 세그먼트 -->
+    <div class="seg" role="group" aria-label="뷰 모드">
+      <button class="seg-btn active-simple" id="mode-simple">
+        <span class="ko">📄 심플</span><span class="en">📄 Basic</span>
+      </button>
+      <button class="seg-btn active-adv" id="mode-adv">
+        <span class="ko">🔬 심화</span><span class="en">🔬 Advanced</span>
+      </button>
+    </div>
+    <button class="btn" id="lang-toggle" title="언어 전환 / Switch language">
+      <span class="ko">🇺🇸 English</span><span class="en">🇰🇷 한국어</span>
+    </button>
+    <button class="btn btn-primary" onclick="window.print()">🖨️ <span class="ko">출력</span><span class="en">Print</span></button>
+    <a class="btn" href="https://wikidocs.net/290950" target="_blank" rel="noopener">
+      <span class="ko">📖 전체 가이드</span><span class="en">📖 Full Guide</span>
+    </a>
+  </div>
 </header>
 
-<div class="legend">
-  <span class="legend-item"><span class="legend-dot" style="background:#FF6D5A;"></span><span class="badge badge-trigger">트리거</span> 워크플로우 시작점</span>
-  <span class="legend-item"><span class="legend-dot" style="background:#6366F1;"></span><span class="badge badge-data">데이터</span> 데이터 처리·변환</span>
-  <span class="legend-item"><span class="legend-dot" style="background:#F59E0B;"></span><span class="badge badge-flow">흐름제어</span> 분기·반복·대기</span>
-  <span class="legend-item"><span class="legend-dot" style="background:#7C3AED;"></span><span class="badge badge-wf">워크플로우</span> 실행·메모</span>
-  <span class="legend-item"><span class="legend-dot" style="background:#10B981;"></span><span class="badge badge-ai">AI</span> AI·LLM</span>
-  <span class="legend-item"><span class="legend-dot" style="background:#6B7280;"></span><span class="badge badge-app">앱 연동</span> 외부 서비스</span>
-</div>
+<!-- ════ MAIN GRID ══════════════════════════════════════════ -->
+<main>
 
+  <!-- ① 시작하기 / Getting Started -->
+  <section>
+    <h2><i class="icon">🚀</i> <span class="ko">시작하기</span><span class="en">Getting Started</span></h2>
+    <ul>
+      <li>
+        <strong>Cloud</strong>
+        <span class="sub ko">n8n.io 가입 → 워크플로우 즉시 시작. 설치 불필요.</span>
+        <span class="sub en">Sign up at n8n.io → run workflows instantly. No setup.</span>
+      </li>
+      <li>
+        <strong>Docker</strong>
+        <span style="width:100%">
+          <div class="code-block">docker run -it --rm \
+  -p 5678:5678 \
+  -v n8n_data:/home/node/.n8n \
+  n8nio/n8n</div>
+          <span class="sub ko">→ <code>localhost:5678</code> 접속</span>
+          <span class="sub en">→ open <code>localhost:5678</code></span>
+        </span>
+      </li>
+      <li>
+        <strong>npm</strong>
+        <div class="code-block">npx n8n</div>
+      </li>
+    </ul>
+  </section>
 
-<!-- ══════════ 트리거 ══════════ -->
-<div class="section">
-  <div class="section-title">🚀 트리거 노드 — 워크플로우의 시작점</div>
-  <div class="grid">
-
-    <!-- Webhook -->
-    <div class="card" style="--cat-color:#FF6D5A;">
-      <div class="icon-wrap" style="color:#e91e63;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="7" r="1.5" fill="currentColor"/>
-          <circle cx="6.5" cy="16.5" r="1.5" fill="currentColor"/>
-          <circle cx="17.5" cy="16.5" r="1.5" fill="currentColor"/>
-          <path d="M15.2476 8.875C15.5892 8.28336 15.7512 7.63732 15.7506 6.99998C15.7494 5.70521 15.077 4.44635 13.875 3.75241C12.0814 2.71687 9.78794 3.3314 8.75241 5.125C7.71687 6.9186 8.3314 9.21206 10.125 10.2476L6.5 16.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M6.5 12.75C4.42893 12.75 2.75 14.4289 2.75 16.5C2.75 18.5711 4.42893 20.25 6.5 20.25C8.57107 20.25 10.25 18.5711 10.25 16.5H17.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M14.2524 18.375C15.2879 20.1686 17.5814 20.7831 19.375 19.7476C21.1686 18.7121 21.7831 16.4186 20.7476 14.625C19.7121 12.8314 17.4186 12.2169 15.625 13.2524L12 7" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
+  <!-- ② 핵심 개념 / Core Concepts -->
+  <section>
+    <h2><i class="icon">🧩</i> <span class="ko">핵심 개념</span><span class="en">Core Concepts</span></h2>
+    <div class="concepts">
+      <div class="concept">
+        <strong>Workflow</strong>
+        <span class="ko">노드들의 연결 흐름. 자동화의 단위.</span>
+        <span class="en">Connected flow of nodes. Unit of automation.</span>
       </div>
-      <div class="card-body">
-        <div class="card-name">Webhook <span class="badge badge-trigger">트리거</span></div>
-        <div class="card-type">n8n-nodes-base.webhook</div>
-        <div class="card-desc">외부에서 HTTP 요청이 오면 워크플로우를 시작합니다. 폼 제출, 슬랙 봇, 외부 서비스 이벤트 수신에 사용합니다.</div>
-        <div class="card-tip">💡 n8n이 고유 URL을 발급해 줌. 그 URL을 외부 서비스에 등록하면 끝.</div>
+      <div class="concept">
+        <strong>Node</strong>
+        <span class="ko">하나의 작업 블록. 트리거·앱·로직.</span>
+        <span class="en">A single action block — trigger, app, or logic.</span>
+      </div>
+      <div class="concept">
+        <strong>Trigger</strong>
+        <span class="ko">워크플로우를 시작시키는 특수 노드.</span>
+        <span class="en">Special node that starts a workflow.</span>
+      </div>
+      <div class="concept">
+        <strong>Execution</strong>
+        <span class="ko">워크플로우가 한 번 실행된 것. 로그 확인 가능.</span>
+        <span class="en">One run of a workflow. Logs are stored.</span>
+      </div>
+      <div class="concept">
+        <strong>Item</strong>
+        <span class="ko">노드 사이를 흐르는 데이터 한 줄 (<code>$json</code>).</span>
+        <span class="en">One row of data flowing between nodes (<code>$json</code>).</span>
+      </div>
+      <div class="concept">
+        <strong>Credentials</strong>
+        <span class="ko">외부 서비스 인증 정보. 한 번 저장 후 재사용.</span>
+        <span class="en">Auth tokens/keys. Save once, reuse everywhere.</span>
       </div>
     </div>
+  </section>
 
-    <!-- Schedule Trigger -->
-    <div class="card" style="--cat-color:#FF6D5A;">
-      <div class="icon-wrap" style="color:#FF9F43;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-          <path d="M12 6v6l4 2"/>
-          <circle cx="12" cy="12" r="10"/>
-        </svg>
+  <!-- ③ 단축키 / Shortcuts -->
+  <section>
+    <h2><i class="icon">⌨️</i> <span class="ko">필수 단축키</span><span class="en">Essential Shortcuts</span></h2>
+    <div style="font-size:.72rem;color:var(--faint);margin-bottom:.5rem">
+      <kbd style="background:#eef;border-color:#aac">Win</kbd> Ctrl &nbsp;/&nbsp; <kbd style="background:#fee;border-color:#caa">Mac</kbd> ⌘ Cmd
+    </div>
+    <ul class="shortcuts">
+      <li><kbd>Tab</kbd> <span class="ko">노드 추가</span><span class="en">Add node</span></li>
+      <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> <span class="ko">워크플로우 실행</span><span class="en">Execute workflow</span></li>
+      <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>S</kbd> <span class="ko">저장</span><span class="en">Save</span></li>
+      <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Z</kbd> <span class="ko">실행 취소</span><span class="en">Undo</span></li>
+      <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>A</kbd> <span class="ko">전체 선택</span><span class="en">Select all</span></li>
+      <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>C</kbd>/<kbd>V</kbd> <span class="ko">복사 / 붙여넣기</span><span class="en">Copy / Paste</span></li>
+      <li><kbd>D</kbd> <span class="ko">노드 복제</span><span class="en">Duplicate node</span></li>
+      <li><kbd>F2</kbd> <span class="ko">노드 이름 변경</span><span class="en">Rename node</span></li>
+      <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>F</kbd> <span class="ko">노드 검색</span><span class="en">Search nodes</span></li>
+      <li><kbd>Space</kbd>+<span class="ko">드래그</span><span class="en">drag</span> <span class="ko">캔버스 이동</span><span class="en">Pan canvas</span></li>
+      <li><kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> <span class="ko">실행 목록</span><span class="en">Execution list</span></li>
+      <li><kbd>Esc</kbd> <span class="ko">패널 닫기</span><span class="en">Close panel</span></li>
+    </ul>
+  </section>
+
+  <!-- ④ 트리거 3종 / Triggers -->
+  <section>
+    <h2><i class="icon">⚡</i> <span class="ko">트리거 3종</span><span class="en">3 Core Triggers</span></h2>
+    <div class="trigger-item">
+      <div class="trigger-label">🖱️ Manual Trigger</div>
+      <div class="trigger-desc ko">버튼으로 직접 실행. 테스트·디버깅에 필수.</div>
+      <div class="trigger-desc en">Run manually with a button. Essential for testing.</div>
+    </div>
+    <div class="trigger-item">
+      <div class="trigger-label">🕐 Schedule Trigger</div>
+      <div class="trigger-desc ko">
+        크론 표현식으로 반복 실행.<br>
+        <code>0 9 * * 1-5</code> <span style="color:var(--mute)">= 평일 오전 9시</span>
       </div>
-      <div class="card-body">
-        <div class="card-name">Schedule Trigger <span class="badge badge-trigger">트리거</span></div>
-        <div class="card-type">n8n-nodes-base.scheduleTrigger</div>
-        <div class="card-desc">정해진 시간 스케줄(크론)에 따라 자동으로 실행됩니다. 매일 오전 9시 보고서, 매주 월요일 집계 등에 사용합니다.</div>
-        <div class="card-tip">💡 "매일", "매시간", "매주" 등 자연어 선택 가능.</div>
+      <div class="trigger-desc en">
+        Run on a schedule via cron expression.<br>
+        <code>0 9 * * 1-5</code> <span style="color:var(--mute)">=  weekdays 9 AM</span>
       </div>
     </div>
-
-    <!-- Manual Trigger -->
-    <div class="card" style="--cat-color:#FF6D5A;">
-      <div class="icon-wrap" style="color:#909399;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-          <path d="M12.586 12.586L19 19M3.688 3.037a.497.497 0 0 0-.651.651l6.5 15.999a.501.501 0 0 0 .947-.062l1.569-6.083a2 2 0 0 1 1.448-1.479l6.124-1.579a.5.5 0 0 0 .063-.947z"/>
-        </svg>
+    <div class="trigger-item">
+      <div class="trigger-label">🌐 Webhook Trigger</div>
+      <div class="trigger-desc ko">
+        외부 HTTP 요청으로 실행. 고유 URL 자동 생성.<br>
+        <code>POST /webhook/&lt;uuid&gt;</code>로 데이터 수신.
       </div>
-      <div class="card-body">
-        <div class="card-name">Manual Trigger <span class="badge badge-trigger">트리거</span></div>
-        <div class="card-type">n8n-nodes-base.manualTrigger</div>
-        <div class="card-desc">n8n 화면의 "Test workflow" 버튼을 눌러 수동으로 실행합니다. 개발·테스트할 때 필수입니다.</div>
-        <div class="card-tip">💡 실제 운영 배포 시에는 다른 트리거로 교체.</div>
+      <div class="trigger-desc en">
+        Triggered by external HTTP request. Auto URL.<br>
+        <code>POST /webhook/&lt;uuid&gt;</code> to receive data.
       </div>
     </div>
+  </section>
 
-    <!-- Error Trigger -->
-    <div class="card" style="--cat-color:#FF6D5A;">
-      <div class="icon-wrap" style="color:#FF4949;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="8.75" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M8.5 8.5L15.5 15.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M15.5 8.5L8.5 15.5" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
+  <!-- ⑤ 핵심 노드 8개 / Core Nodes -->
+  <section>
+    <h2><i class="icon">🧱</i> <span class="ko">많이 쓰는 노드 8</span><span class="en">8 Must-Know Nodes</span></h2>
+    <div class="node-list">
+      <div class="node-row">
+        <span class="node-name">HTTP Request</span>
+        <span class="sub ko">외부 API 호출 (GET/POST/PUT…)</span>
+        <span class="sub en">Call any external API</span>
       </div>
-      <div class="card-body">
-        <div class="card-name">Error Trigger <span class="badge badge-trigger">트리거</span></div>
-        <div class="card-type">n8n-nodes-base.errorTrigger</div>
-        <div class="card-desc">다른 워크플로우에서 에러가 발생하면 이 워크플로우를 자동으로 실행합니다. 에러 알림·복구 자동화에 사용합니다.</div>
-        <div class="card-tip">💡 에러 발생 시 Slack/이메일로 담당자에게 자동 알림 전송 패턴.</div>
+      <div class="node-row">
+        <span class="node-name">Edit Fields</span>
+        <span class="sub ko">필드 추가·수정·삭제 (구 Set 노드)</span>
+        <span class="sub en">Add / edit / remove fields (ex-Set node)</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">IF</span>
+        <span class="sub ko">조건 분기 → true / false 두 경로</span>
+        <span class="sub en">Condition → two output branches</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Filter</span>
+        <span class="sub ko">조건에 맞는 아이템만 통과</span>
+        <span class="sub en">Pass only items matching a condition</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Merge</span>
+        <span class="sub ko">두 브랜치를 하나로 합침</span>
+        <span class="sub en">Combine two branches into one</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Split Out</span>
+        <span class="sub ko">배열 → 개별 아이템으로 분리</span>
+        <span class="sub en">Array → individual items</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Code</span>
+        <span class="sub ko">JavaScript로 자유로운 데이터 처리</span>
+        <span class="sub en">Custom JS data transformation</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Loop Over Items</span>
+        <span class="sub ko">아이템 하나씩 순차 처리 (배치 실행)</span>
+        <span class="sub en">Process items one-by-one in batches</span>
       </div>
     </div>
+  </section>
 
-    <!-- Chat Trigger -->
-    <div class="card" style="--cat-color:#FF6D5A;">
-      <div class="icon-wrap" style="color:#EA4B71;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20.25 17.75C20.25 18.5784 19.5784 19.25 18.75 19.25H14.1302C13.8807 19.25 13.6351 19.3122 13.4157 19.4311L7.75 22.5V19.25H5.25C4.42157 19.25 3.75 18.5784 3.75 17.75V6.25C3.75 5.42157 4.42157 4.75 5.25 4.75H18.75C19.5784 4.75 20.25 5.42157 20.25 6.25V17.75Z" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
+  <!-- ⑥ 표현식 / Expressions -->
+  <section>
+    <h2><i class="icon">✏️</i> <span class="ko">표현식 기본</span><span class="en">Expression Basics</span></h2>
+    <ul>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.field }}</div>
+          <span class="sub ko">현재 아이템 필드 접근</span>
+          <span class="sub en">Access current item field</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $node["노드명"].json.field }}</div>
+          <span class="sub ko">특정 노드 출력 참조</span>
+          <span class="sub en">Reference a specific node's output</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $now.toFormat('yyyy-MM-dd') }}</div>
+          <span class="sub ko">오늘 날짜 포맷 (Luxon 사용)</span>
+          <span class="sub en">Format today's date (uses Luxon)</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.score > 80 ? '합격' : '불합격' }}</div>
+          <span class="sub ko">삼항 조건 (true값 : false값)</span>
+          <span class="sub en">Ternary condition</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $input.all().length }}</div>
+          <span class="sub ko">전체 아이템 개수 반환</span>
+          <span class="sub en">Total number of input items</span>
+        </span>
+      </li>
+    </ul>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">💡 노드 파라미터 창에서 <code>{{ }}</code> 입력 시 표현식 모드 활성화</span>
+      <span class="en">💡 Type <code>{{ }}</code> in any node field to enable expression mode</span>
+    </p>
+  </section>
+
+  <!-- ⑦ 자격 증명 / Credentials -->
+  <section>
+    <h2><i class="icon">🔐</i> <span class="ko">자격 증명(Credentials)</span><span class="en">Credentials</span></h2>
+    <div class="cred-item">
+      <div class="cred-label">API Key</div>
+      <div class="cred-desc ko">헤더/쿼리로 키를 전달. Header: <code>Authorization: Bearer …</code></div>
+      <div class="cred-desc en">Pass key via header/query. <code>Authorization: Bearer …</code></div>
+    </div>
+    <div class="cred-item">
+      <div class="cred-label">OAuth2</div>
+      <div class="cred-desc ko">Google·Slack 등. n8n이 토큰 갱신 자동 처리.</div>
+      <div class="cred-desc en">Google, Slack etc. n8n auto-refreshes tokens.</div>
+    </div>
+    <div class="cred-item">
+      <div class="cred-label">환경 변수 / Env Var</div>
+      <div class="cred-desc ko">민감 정보를 <code>N8N_CUSTOM_ENV</code>로 주입 후 표현식에서 <code>{{ $env.VAR }}</code> 사용.</div>
+      <div class="cred-desc en">Inject secrets as env vars, use <code>{{ $env.VAR }}</code> in expressions.</div>
+    </div>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">📍 등록 위치: 우측 상단 → Credentials → New</span>
+      <span class="en">📍 Where: top-right menu → Credentials → New</span>
+    </p>
+  </section>
+
+  <!-- ⑧ 에러 처리 / Error Handling -->
+  <section>
+    <h2><i class="icon">🛡️</i> <span class="ko">에러 처리 3가지</span><span class="en">Error Handling × 3</span></h2>
+    <ul>
+      <li>
+        <strong>Retry on Fail</strong>
+        <span class="sub ko">실패 시 자동 재시도 (횟수·간격 설정 가능)</span>
+        <span class="sub en">Auto-retry on failure (set count &amp; interval)</span>
+      </li>
+      <li>
+        <strong>Continue on Fail</strong>
+        <span class="sub ko">에러 아이템을 <code>error</code> 필드로 넘겨 계속 진행</span>
+        <span class="sub en">Pass failed items with <code>error</code> field, keep going</span>
+      </li>
+      <li>
+        <strong>Error Trigger</strong>
+        <span class="sub ko">별도 에러 전용 워크플로우 연결. Slack·이메일 알림에 활용.</span>
+        <span class="sub en">Link a dedicated error workflow for Slack/email alerts.</span>
+      </li>
+    </ul>
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">📍 노드 설정 → Settings 탭에서 Retry/Continue 활성화</span>
+      <span class="en">📍 Node → Settings tab to enable Retry / Continue</span>
+    </p>
+  </section>
+
+  <!-- ⑨ 초보자 팁 / Beginner Tips -->
+  <section>
+    <h2><i class="icon">💡</i> <span class="ko">초보자 팁 5</span><span class="en">5 Beginner Tips</span></h2>
+    <ul class="tip-list">
+      <li>
+        <span class="ko"><strong>Pinned Data</strong>로 실제 API 응답을 고정해두면 매번 외부 호출 없이 노드를 테스트할 수 있어요.</span>
+        <span class="en"><strong>Pin Data</strong> on a node to test downstream without re-calling the API every time.</span>
+      </li>
+      <li>
+        <span class="ko"><strong>Execute Once</strong>를 켜면 아이템이 여러 개여도 노드를 딱 한 번만 실행합니다 (알림 발송 등).</span>
+        <span class="en">Enable <strong>Execute Once</strong> to run a node once regardless of item count (e.g. send notification).</span>
+      </li>
+      <li>
+        <span class="ko">큰 워크플로우는 작은 서브 워크플로우로 나누고 <strong>Execute Workflow</strong> 노드로 호출하세요.</span>
+        <span class="en">Split large workflows into sub-workflows and call them with <strong>Execute Workflow</strong>.</span>
+      </li>
+      <li>
+        <span class="ko">먼저 <strong>Manual Trigger</strong>로 만들고, 완성 후 Schedule/Webhook으로 교체하면 디버깅이 쉬워요.</span>
+        <span class="en">Build with <strong>Manual Trigger</strong> first, then swap to Schedule/Webhook once it works.</span>
+      </li>
+      <li>
+        <span class="ko"><strong>n8n.io/workflows</strong>의 템플릿 검색으로 비슷한 워크플로우를 찾아 시작점으로 활용하세요.</span>
+        <span class="en">Search <strong>n8n.io/workflows</strong> for templates — great starting points.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ⑩ 리소스 / Resources -->
+  <section>
+    <h2><i class="icon">🔗</i> <span class="ko">리소스</span><span class="en">Resources</span></h2>
+    <ul class="resource-list">
+      <li>📖 <a href="https://docs.n8n.io" target="_blank" rel="noopener"><span class="ko">공식 문서</span><span class="en">Official Docs</span></a> — docs.n8n.io</li>
+      <li>💬 <a href="https://community.n8n.io" target="_blank" rel="noopener"><span class="ko">커뮤니티 포럼</span><span class="en">Community Forum</span></a> — community.n8n.io</li>
+      <li>🎨 <a href="https://n8n.io/workflows" target="_blank" rel="noopener"><span class="ko">워크플로우 템플릿</span><span class="en">Workflow Templates</span></a> — n8n.io/workflows</li>
+      <li>📺 <a href="https://www.youtube.com/@datapopcorn" target="_blank" rel="noopener"><span class="ko">데이터팝콘 유튜브</span><span class="en">DataPopcorn YouTube</span></a></li>
+      <li>📝 <a href="https://wikidocs.net/290950" target="_blank" rel="noopener"><span class="ko">전체 가이드 (위키독스)</span><span class="en">Full Korean Guide (Wikidocs)</span></a></li>
+    </ul>
+  </section>
+
+  <!-- ══ 심화 섹션 (adv) ═══════════════════════════════════ -->
+
+  <!-- A. AI 에이전트 / AI Agents -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🤖</i> <span class="ko">AI 에이전트</span><span class="en">AI Agents</span></h2>
+    <div class="node-list">
+      <div class="node-row">
+        <span class="node-name">AI Agent</span>
+        <span class="sub ko">LLM이 도구를 자율 선택·실행. 핵심 오케스트레이터.</span>
+        <span class="sub en">LLM autonomously picks &amp; runs tools.</span>
       </div>
-      <div class="card-body">
-        <div class="card-name">Chat Trigger <span class="badge badge-trigger">트리거</span></div>
-        <div class="card-type">@n8n/n8n-nodes-langchain.chatTrigger</div>
-        <div class="card-desc">채팅 인터페이스를 제공하여 사용자가 채팅으로 워크플로우를 시작합니다. AI 에이전트와 함께 자주 사용합니다.</div>
-        <div class="card-tip">💡 n8n이 자동으로 채팅 UI를 생성해 줌. 별도 개발 불필요.</div>
+      <div class="node-row">
+        <span class="node-name">Chat Model</span>
+        <span class="sub ko">OpenAI / Anthropic / Gemini 등 LLM 연결.</span>
+        <span class="sub en">Connect OpenAI, Anthropic, Gemini, etc.</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Memory</span>
+        <span class="sub ko">Window / Vector Store로 대화 컨텍스트 유지.</span>
+        <span class="sub en">Window / Vector Store for conversation context.</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Tool</span>
+        <span class="sub ko">HTTP Request·Code·Workflow를 에이전트 도구로 등록.</span>
+        <span class="sub en">Register HTTP / Code / Workflow as agent tools.</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name">Vector Store</span>
+        <span class="sub ko">문서 임베딩 저장·검색 (RAG 파이프라인).</span>
+        <span class="sub en">Store &amp; search embeddings for RAG pipelines.</span>
       </div>
     </div>
-
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">💡 노드 추가 → AI 카테고리에서 모두 확인 가능</span>
+      <span class="en">💡 Add node → AI category to browse all AI nodes</span>
+    </p>
+  </section>
   </div>
-</div>
 
-
-<!-- ══════════ 데이터 처리 ══════════ -->
-<div class="section">
-  <div class="section-title">⚙️ 데이터 처리 노드 — 데이터를 변환·가공</div>
-  <div class="grid">
-
-    <!-- Edit Fields (Set) -->
-    <div class="card" style="--cat-color:#6366F1;">
-      <div class="icon-wrap" style="color:#3A42E9;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-          <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Edit Fields (Set) <span class="badge badge-data">데이터</span></div>
-        <div class="card-type">n8n-nodes-base.set</div>
-        <div class="card-desc">데이터 필드를 추가·수정·삭제합니다. 값 이름을 바꾸거나, 고정값을 넣거나, 불필요 필드를 제거할 때 씁니다.</div>
-        <div class="card-tip">💡 워크플로우에서 가장 자주 쓰는 노드. 모든 데이터 정제 작업에 필수.</div>
-      </div>
-    </div>
-
-    <!-- Code -->
-    <div class="card" style="--cat-color:#6366F1;">
-      <div class="icon-wrap" style="color:#FF9922;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 3.75H6.25C5.42157 3.75 4.75 4.42157 4.75 5.25V9.37868C4.75 9.7765 4.59197 10.158 4.31066 10.4393L2.75 12L4.31066 13.5607C4.59196 13.842 4.75 14.2235 4.75 14.6213V18.75C4.75 19.5784 5.42157 20.25 6.25 20.25H9" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M15 3.75H17.75C18.5784 3.75 19.25 4.42157 19.25 5.25V9.37868C19.25 9.7765 19.408 10.158 19.6893 10.4393L21.25 12L19.6893 13.5607C19.408 13.842 19.25 14.2235 19.25 14.6213V18.75C19.25 19.5784 18.5784 20.25 17.75 20.25H15" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Code <span class="badge badge-data">데이터</span></div>
-        <div class="card-type">n8n-nodes-base.code</div>
-        <div class="card-desc">JavaScript 또는 Python 코드를 직접 작성합니다. 복잡한 계산, 문자열 처리, 날짜 변환 등 노드로 해결 안 되는 작업에 사용합니다.</div>
-        <div class="card-tip">💡 AI가 코드를 생성해 주면 복붙. $input.all()로 이전 노드 데이터 접근.</div>
-      </div>
-    </div>
-
-    <!-- HTTP Request -->
-    <div class="card" style="--cat-color:#6366F1;">
-      <div class="icon-wrap" style="color:#3A42E9;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="8.75" stroke="currentColor" stroke-width="1.5"/>
-          <ellipse cx="12" cy="12" rx="3.75" ry="8.75" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M3 12H21" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">HTTP Request <span class="badge badge-data">데이터</span></div>
-        <div class="card-type">n8n-nodes-base.httpRequest</div>
-        <div class="card-desc">외부 REST API를 호출합니다. n8n에 기본 연동 노드가 없는 서비스도 이 노드로 연결할 수 있습니다.</div>
-        <div class="card-tip">💡 GET/POST/PUT/DELETE 지원. API Key·Bearer Token 인증 설정 가능.</div>
-      </div>
-    </div>
-
+  <!-- B. 고급 표현식 / Advanced Expressions -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">✏️✚</i> <span class="ko">고급 표현식</span><span class="en">Advanced Expressions</span></h2>
+    <ul>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $input.all().map(i => i.json.name) }}</div>
+          <span class="sub ko">전체 아이템에서 name 배열 추출</span>
+          <span class="sub en">Extract name array from all items</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $input.all().filter(i => i.json.score > 80) }}</div>
+          <span class="sub ko">조건 필터링 (Code 노드 없이)</span>
+          <span class="sub en">Filter in-expression (no Code node needed)</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.tags.join(', ') }}</div>
+          <span class="sub ko">배열을 문자열로 합치기</span>
+          <span class="sub en">Join array to string</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $now.minus({ days: 7 }).toISO() }}</div>
+          <span class="sub ko">7일 전 ISO 타임스탬프 (Luxon)</span>
+          <span class="sub en">ISO timestamp 7 days ago (Luxon)</span>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <div class="code-block">{{ $json.text?.replace(/\n/g, ' ') ?? '' }}</div>
+          <span class="sub ko">정규식 치환 + 옵셔널 체이닝</span>
+          <span class="sub en">Regex replace + optional chaining</span>
+        </span>
+      </li>
+    </ul>
+  </section>
   </div>
-</div>
 
-
-<!-- ══════════ 흐름 제어 ══════════ -->
-<div class="section">
-  <div class="section-title">🔀 흐름 제어 노드 — 분기·반복·대기</div>
-  <div class="grid">
-
-    <!-- IF -->
-    <div class="card" style="--cat-color:#F59E0B;">
-      <div class="icon-wrap" style="color:#5BA4F5;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-          <path d="M12 13v8m0-18v3M4 6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h13a2 2 0 0 0 1.152-.365l3.424-2.317a1 1 0 0 0 0-1.635l-3.424-2.318A2 2 0 0 0 17 6z"/>
-        </svg>
+  <!-- C. 서브 워크플로우 / Sub-Workflows -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🔄</i> <span class="ko">서브 워크플로우</span><span class="en">Sub-Workflows</span></h2>
+    <div class="trigger-item">
+      <div class="trigger-label">Execute Workflow</div>
+      <div class="trigger-desc ko">다른 워크플로우를 호출하고 결과를 받아옴. 재사용 모듈화에 핵심.</div>
+      <div class="trigger-desc en">Call another workflow and receive its output. Key to modular design.</div>
+    </div>
+    <div class="trigger-item">
+      <div class="trigger-label">Execute Workflow Trigger</div>
+      <div class="trigger-desc ko">서브 워크플로우의 진입점. 부모에서 데이터를 받아 시작.</div>
+      <div class="trigger-desc en">Entry point for sub-workflows. Receives data from the caller.</div>
+    </div>
+    <div class="trigger-item">
+      <div class="trigger-label"><span class="ko">패턴</span><span class="en">Pattern</span></div>
+      <div class="trigger-desc ko">
+        <code>메인 워크플로우</code> → <code>Execute Workflow</code> → <code>서브: 데이터 정제</code><br>
+        공통 로직(알림, DB 저장)을 서브로 분리해 여러 워크플로우에서 재사용.
       </div>
-      <div class="card-body">
-        <div class="card-name">IF <span class="badge badge-flow">흐름제어</span></div>
-        <div class="card-type">n8n-nodes-base.if</div>
-        <div class="card-desc">조건에 따라 흐름을 두 갈래(True/False)로 나눕니다. "상태가 '승인'이면 A 처리, 아니면 B 처리" 같은 분기에 사용합니다.</div>
-        <div class="card-tip">💡 True/False 두 개의 출력 연결점이 생김.</div>
+      <div class="trigger-desc en">
+        <code>Main</code> → <code>Execute Workflow</code> → <code>Sub: data cleanse</code><br>
+        Extract shared logic (notify, save) into sub-workflows and reuse.
       </div>
     </div>
-
-    <!-- Switch -->
-    <div class="card" style="--cat-color:#F59E0B;">
-      <div class="icon-wrap" style="color:#5BA4F5;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-          <path d="M12 13v8m0-18v3M4 6a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h13a2 2 0 0 0 1.152-.365l3.424-2.317a1 1 0 0 0 0-1.635l-3.424-2.318A2 2 0 0 0 17 6z"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Switch <span class="badge badge-flow">흐름제어</span></div>
-        <div class="card-type">n8n-nodes-base.switch</div>
-        <div class="card-desc">여러 조건에 따라 3개 이상의 경로로 분기합니다. 부서별·유형별로 다르게 처리할 때 IF 대신 사용합니다.</div>
-        <div class="card-tip">💡 조건이 3개 이상이면 IF 대신 Switch가 더 깔끔함.</div>
-      </div>
-    </div>
-
-    <!-- Merge -->
-    <div class="card" style="--cat-color:#F59E0B;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Merge/merge.svg"
-          alt="Merge">
-      </div>
-      <div class="card-body">
-        <div class="card-name">Merge <span class="badge badge-flow">흐름제어</span></div>
-        <div class="card-type">n8n-nodes-base.merge</div>
-        <div class="card-desc">여러 경로에서 온 데이터를 하나로 합칩니다. 두 API 결과를 합치거나, 분기된 흐름을 다시 합칠 때 사용합니다.</div>
-        <div class="card-tip">💡 Combine(합치기), Append(이어붙이기), Wait(모두 도착 후) 등 방식 선택 가능.</div>
-      </div>
-    </div>
-
-    <!-- Loop Over Items -->
-    <div class="card" style="--cat-color:#F59E0B;">
-      <div class="icon-wrap" style="color:#19A97B;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-          <path d="M3 12a9 9 0 0 1 9-9a9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-          <path d="M21 3v5h-5m5 4a9 9 0 0 1-9 9a9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-          <path d="M8 16H3v5"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Loop Over Items <span class="badge badge-flow">흐름제어</span></div>
-        <div class="card-type">n8n-nodes-base.splitInBatches</div>
-        <div class="card-desc">많은 데이터를 한 번에 처리하지 않고 N개씩 나눠서 반복 처리합니다. 대용량 처리, API 호출 제한 우회에 사용합니다.</div>
-        <div class="card-tip">💡 100개 항목을 10개씩 10번 나눠서 처리하는 루프.</div>
-      </div>
-    </div>
-
-    <!-- Wait -->
-    <div class="card" style="--cat-color:#F59E0B;">
-      <div class="icon-wrap" style="color:#909399;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18.25 20.25H5.75V17.6213C5.75 17.2235 5.90803 16.842 6.18934 16.5607L9.89645 12.8536C10.1228 12.6272 10.25 12.3201 10.25 12C10.25 11.6799 10.1228 11.3728 9.89645 11.1464L6.18934 7.43934C5.90803 7.15803 5.75 6.7765 5.75 6.37868V3.75H18.25V6.37868C18.25 6.7765 18.092 7.15804 17.8107 7.43934L14.1036 11.1464C13.8772 11.3728 13.75 11.6799 13.75 12C13.75 12.3201 13.8772 12.6272 14.1036 12.8536L17.8107 16.5607C18.092 16.842 18.25 17.2235 18.25 17.6213V20.25Z" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Wait <span class="badge badge-flow">흐름제어</span></div>
-        <div class="card-type">n8n-nodes-base.wait</div>
-        <div class="card-desc">일정 시간 대기하거나, 특정 시각 또는 외부 신호(Webhook)를 받을 때까지 흐름을 중단합니다.</div>
-        <div class="card-tip">💡 이메일 발송 후 1시간 대기, 그 후 후속 조치 자동화에 활용.</div>
-      </div>
-    </div>
-
-    <!-- Stop and Error -->
-    <div class="card" style="--cat-color:#F59E0B;">
-      <div class="icon-wrap" style="color:#FF4949;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="8.75" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M5.82001 5.82001L18.1799 18.1799" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Stop and Error <span class="badge badge-flow">흐름제어</span></div>
-        <div class="card-type">n8n-nodes-base.stopAndError</div>
-        <div class="card-desc">워크플로우를 강제로 중단하고 에러 메시지를 남깁니다. 필수 데이터가 없거나 조건 미충족 시 명시적으로 실패 처리할 때 사용합니다.</div>
-        <div class="card-tip">💡 에러 메시지 직접 지정 가능. Error Trigger 워크플로우와 연계.</div>
-      </div>
-    </div>
-
-    <!-- No Operation -->
-    <div class="card" style="--cat-color:#F59E0B;">
-      <div class="icon-wrap" style="color:#94A3B8;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2.5 12H15.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M14 19.5L21.5 12L14 4.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M8 19.5L15.5 12L8 4.5" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">No Operation <span class="badge badge-flow">흐름제어</span></div>
-        <div class="card-type">n8n-nodes-base.noOp</div>
-        <div class="card-desc">아무 작업도 하지 않고 데이터를 그대로 통과시킵니다. IF 노드 분기 중 연결할 곳이 없을 때 임시 연결점으로 사용합니다.</div>
-        <div class="card-tip">💡 흐름 제어용 플레이스홀더. 실행에 영향 없음.</div>
-      </div>
-    </div>
-
+  </section>
   </div>
-</div>
 
-
-<!-- ══════════ 워크플로우 관리 ══════════ -->
-<div class="section">
-  <div class="section-title">📋 워크플로우 관리 노드</div>
-  <div class="grid">
-
-    <!-- Execute Sub-workflow -->
-    <div class="card" style="--cat-color:#7C3AED;">
-      <div class="icon-wrap" style="color:#4F46E5;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 20.25L5.25 20.25C4.42157 20.25 3.75 19.5784 3.75 18.75L3.75 5.25C3.75 4.42157 4.42157 3.75 5.25 3.75L8 3.75" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M15 17.5L20.5 12L15 6.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M20.5 12L7 12" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
+  <!-- D. 커뮤니티 노드 / Community Nodes -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">📦</i> <span class="ko">커뮤니티 노드</span><span class="en">Community Nodes</span></h2>
+    <div class="cred-item">
+      <div class="cred-label ko">설치 방법</div>
+      <div class="cred-label en">How to install</div>
+      <div class="cred-desc ko">Settings → Community Nodes → Install → npm 패키지명 입력</div>
+      <div class="cred-desc en">Settings → Community Nodes → Install → enter npm package name</div>
+    </div>
+    <div style="margin-top:.5rem">
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-browserless</span>
+        <span class="sub ko">브라우저 자동화·스크래핑</span>
+        <span class="sub en">Browser automation &amp; scraping</span>
       </div>
-      <div class="card-body">
-        <div class="card-name">Execute Sub-workflow <span class="badge badge-wf">워크플로우</span></div>
-        <div class="card-type">n8n-nodes-base.executeWorkflow</div>
-        <div class="card-desc">다른 워크플로우를 호출(실행)합니다. 공통 로직을 별도 워크플로우로 분리하고 여러 곳에서 재사용할 때 사용합니다.</div>
-        <div class="card-tip">💡 "슬랙 알림 보내기" 워크플로우를 만들어두고 여러 워크플로우에서 호출.</div>
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-langchain</span>
+        <span class="sub ko">LangChain 연동 (내장 통합 전)</span>
+        <span class="sub en">LangChain integration</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-discord</span>
+        <span class="sub ko">Discord 메시지·이벤트 처리</span>
+        <span class="sub en">Discord messages &amp; events</span>
+      </div>
+      <div class="node-row">
+        <span class="node-name" style="min-width:11rem">n8n-nodes-firecrawl</span>
+        <span class="sub ko">웹 크롤링 → 마크다운 변환</span>
+        <span class="sub en">Web crawl → markdown conversion</span>
       </div>
     </div>
-
-    <!-- Sticky Note -->
-    <div class="card" style="--cat-color:#7C3AED;">
-      <div class="icon-wrap" style="color:#EAB308;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4H20V16L14 20H4V4Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-          <path d="M14 16V20" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M14 16H20" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M8 9H16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-          <path d="M8 12H13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">Sticky Note <span class="badge badge-wf">워크플로우</span></div>
-        <div class="card-type">n8n-nodes-base.stickyNote</div>
-        <div class="card-desc">워크플로우 캔버스에 메모를 남깁니다. 노드 구간에 설명을 달아 팀원들이 이해하기 쉽게 합니다.</div>
-        <div class="card-tip">💡 실제 실행에는 영향 없는 순수 주석 노드. 색상 변경 가능.</div>
-      </div>
-    </div>
-
+    <p style="font-size:.75rem; color:var(--faint); margin-top:.5rem">
+      <span class="ko">⚠️ Self-hosted 환경에서만 설치 가능</span>
+      <span class="en">⚠️ Only available on self-hosted instances</span>
+    </p>
+  </section>
   </div>
-</div>
 
-
-<!-- ══════════ AI 노드 ══════════ -->
-<div class="section">
-  <div class="section-title">🤖 AI 노드 — LLM·에이전트</div>
-  <div class="grid">
-
-    <!-- AI Agent -->
-    <div class="card" style="--cat-color:#10B981;">
-      <div class="icon-wrap" style="color:#EA4B71;">
-        <svg class="node-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-          <path d="M12 8V4H8"/>
-          <rect width="16" height="12" x="4" y="8" rx="2"/>
-          <path d="M2 14h2m16 0h2m-7-1v2m-6-2v2"/>
-        </svg>
-      </div>
-      <div class="card-body">
-        <div class="card-name">AI Agent <span class="badge badge-ai">AI</span></div>
-        <div class="card-type">@n8n/n8n-nodes-langchain.agent</div>
-        <div class="card-desc">LLM이 도구(Tool)를 스스로 선택해 가며 작업을 수행하는 에이전트입니다. Chat Trigger와 함께 사용해 챗봇을 만들 수 있습니다.</div>
-        <div class="card-tip">💡 아래에 LLM 모델 노드(OpenAI 등)와 Tool 노드를 연결해서 구성.</div>
-      </div>
-    </div>
-
-    <!-- OpenAI (브랜드 이미지) -->
-    <div class="card" style="--cat-color:#10B981;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/OpenAi/openAi.svg"
-          alt="OpenAI">
-      </div>
-      <div class="card-body">
-        <div class="card-name">OpenAI <span class="badge badge-ai">AI</span></div>
-        <div class="card-type">n8n-nodes-base.openAi</div>
-        <div class="card-desc">OpenAI GPT 모델을 직접 호출합니다. 텍스트 생성, 분류, 요약, 이미지 생성(DALL-E) 등에 사용합니다.</div>
-        <div class="card-tip">💡 AI Agent 없이 단순 LLM 호출만 필요할 때 이 노드 사용.</div>
-      </div>
-    </div>
-
+  <!-- E. Docker 심화 / Docker Advanced -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🐳</i> <span class="ko">Docker 심화</span><span class="en">Docker Advanced</span></h2>
+    <ul>
+      <li>
+        <span style="width:100%">
+          <span class="sub ko" style="font-weight:700;color:var(--ink)">환경변수로 설정</span>
+          <span class="sub en" style="font-weight:700;color:var(--ink)">Configure via env vars</span>
+          <div class="code-block">-e N8N_BASIC_AUTH_ACTIVE=true \
+-e N8N_BASIC_AUTH_USER=admin \
+-e N8N_BASIC_AUTH_PASSWORD=secret \
+-e N8N_ENCRYPTION_KEY=yourkey32chars</div>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <span class="sub ko" style="font-weight:700;color:var(--ink)">버전 업그레이드</span>
+          <span class="sub en" style="font-weight:700;color:var(--ink)">Upgrade version</span>
+          <div class="code-block">docker pull n8nio/n8n
+docker stop n8n && docker rm n8n
+# 동일 run 커맨드 재실행</div>
+        </span>
+      </li>
+      <li>
+        <span style="width:100%">
+          <span class="sub ko" style="font-weight:700;color:var(--ink)">데이터 백업</span>
+          <span class="sub en" style="font-weight:700;color:var(--ink)">Backup data</span>
+          <div class="code-block">docker cp n8n:/home/node/.n8n ./n8n-backup</div>
+        </span>
+      </li>
+    </ul>
+  </section>
   </div>
-</div>
 
-
-<!-- ══════════ 앱 연동 ══════════ -->
-<div class="section">
-  <div class="section-title">🔌 주요 앱 연동 노드 — HR 실무에서 자주 쓰는 서비스</div>
-  <div class="grid">
-
-    <div class="card" style="--cat-color:#6B7280;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Google/Gmail/gmail.svg"
-          alt="Gmail">
-      </div>
-      <div class="card-body">
-        <div class="card-name">Gmail <span class="badge badge-app">앱 연동</span></div>
-        <div class="card-type">n8n-nodes-base.gmail</div>
-        <div class="card-desc">Gmail로 이메일을 보내거나 받은 메일을 읽습니다. 인사 공지, 면접 일정 안내, 자동 회신 등에 활용합니다.</div>
-        <div class="card-tip">💡 OAuth2로 회사 계정 연결. CC/BCC, 첨부파일 모두 지원.</div>
-      </div>
-    </div>
-
-    <div class="card" style="--cat-color:#6B7280;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Google/Sheet/googleSheets.svg"
-          alt="Google Sheets">
-      </div>
-      <div class="card-body">
-        <div class="card-name">Google Sheets <span class="badge badge-app">앱 연동</span></div>
-        <div class="card-type">n8n-nodes-base.googleSheets</div>
-        <div class="card-desc">구글 스프레드시트에서 데이터를 읽거나 씁니다. HR 데이터베이스, 설문 결과, 교육 이수 현황 관리에 활용합니다.</div>
-        <div class="card-tip">💡 행 추가·업데이트·삭제, 전체 시트 읽기 모두 가능.</div>
-      </div>
-    </div>
-
-    <div class="card" style="--cat-color:#6B7280;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Slack/slack.svg"
-          alt="Slack">
-      </div>
-      <div class="card-body">
-        <div class="card-name">Slack <span class="badge badge-app">앱 연동</span></div>
-        <div class="card-type">n8n-nodes-base.slack</div>
-        <div class="card-desc">슬랙 채널에 메시지를 보내거나, 슬랙 이벤트를 워크플로우 트리거로 사용합니다. 업무 알림 자동화의 핵심입니다.</div>
-        <div class="card-tip">💡 채용 확정 시 → 담당자 슬랙 알림 자동 발송 패턴.</div>
-      </div>
-    </div>
-
-    <div class="card" style="--cat-color:#6B7280;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Notion/notion.svg"
-          alt="Notion">
-      </div>
-      <div class="card-body">
-        <div class="card-name">Notion <span class="badge badge-app">앱 연동</span></div>
-        <div class="card-type">n8n-nodes-base.notion</div>
-        <div class="card-desc">노션 데이터베이스에 페이지를 추가하거나 조회합니다. 채용 현황, 온보딩 체크리스트, HR 문서 관리에 활용합니다.</div>
-        <div class="card-tip">💡 노션 DB를 HR 데이터 허브로 쓰고 n8n으로 자동 업데이트.</div>
-      </div>
-    </div>
-
-    <div class="card" style="--cat-color:#6B7280;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Microsoft/Teams/teams.svg"
-          alt="Microsoft Teams">
-      </div>
-      <div class="card-body">
-        <div class="card-name">Microsoft Teams <span class="badge badge-app">앱 연동</span></div>
-        <div class="card-type">n8n-nodes-base.microsoftTeams</div>
-        <div class="card-desc">MS Teams 채널에 메시지를 보냅니다. Slack 대신 Teams를 사용하는 기업 환경에서 알림 자동화에 사용합니다.</div>
-        <div class="card-tip">💡 O365 계정 OAuth2 연결 필요. Teams 사용 기업의 알림 자동화에 적합.</div>
-      </div>
-    </div>
-
-    <div class="card" style="--cat-color:#6B7280;">
-      <div class="icon-wrap">
-        <img class="brand-img"
-          src="https://raw.githubusercontent.com/n8n-io/n8n/master/packages/nodes-base/nodes/Microsoft/Outlook/outlook.svg"
-          alt="Microsoft Outlook">
-      </div>
-      <div class="card-body">
-        <div class="card-name">Microsoft Outlook <span class="badge badge-app">앱 연동</span></div>
-        <div class="card-type">n8n-nodes-base.microsoftOutlook</div>
-        <div class="card-desc">Outlook 이메일을 보내거나 읽습니다. 사내 Exchange/O365 이메일로 자동 발송할 때 Gmail 대신 사용합니다.</div>
-        <div class="card-tip">💡 O365 환경의 대기업에서 Gmail 대신 사용하는 이메일 노드.</div>
-      </div>
-    </div>
-
+  <!-- F. 보안 강화 / Security -->
+  <div class="adv">
+  <section>
+    <h2><i class="icon">🔒</i> <span class="ko">보안 강화</span><span class="en">Security Hardening</span></h2>
+    <ul>
+      <li>
+        <strong class="ko">Encryption Key</strong>
+        <strong class="en">Encryption Key</strong>
+        <span class="sub ko">자격 증명 암호화 키. 반드시 백업. <code>N8N_ENCRYPTION_KEY</code> 환경변수.</span>
+        <span class="sub en">Encrypts stored credentials. Must back up. Set via <code>N8N_ENCRYPTION_KEY</code>.</span>
+      </li>
+      <li>
+        <strong>Basic Auth / SSO</strong>
+        <span class="sub ko">셀프 호스팅: Basic Auth or LDAP/SAML로 접근 제한.</span>
+        <span class="sub en">Self-hosted: restrict access via Basic Auth or LDAP/SAML.</span>
+      </li>
+      <li>
+        <strong>HTTPS</strong>
+        <span class="sub ko">Nginx 리버스 프록시 + Let's Encrypt 인증서 사용 권장.</span>
+        <span class="sub en">Use Nginx reverse proxy + Let's Encrypt certificate.</span>
+      </li>
+      <li>
+        <strong class="ko">Webhook IP 제한</strong>
+        <strong class="en">Webhook IP allow-list</strong>
+        <span class="sub ko"><code>N8N_ALLOWED_WEBHOOK_URLS</code> 또는 Nginx에서 특정 IP만 허용.</span>
+        <span class="sub en">Use <code>N8N_ALLOWED_WEBHOOK_URLS</code> or restrict at Nginx level.</span>
+      </li>
+      <li>
+        <strong class="ko">실행 데이터 보존 기간</strong>
+        <strong class="en">Execution data retention</strong>
+        <span class="sub ko"><code>EXECUTIONS_DATA_MAX_AGE</code>로 오래된 실행 로그 자동 삭제.</span>
+        <span class="sub en">Auto-delete old execution logs via <code>EXECUTIONS_DATA_MAX_AGE</code>.</span>
+      </li>
+    </ul>
+  </section>
   </div>
-</div>
 
+</main>
 
-<!-- ══════════ 요약표 ══════════ -->
-<div class="section">
-  <div class="section-title">📌 한눈에 보는 요약표 — HR 활용 예시 포함</div>
-  <div style="overflow-x:auto;">
-    <table>
-      <thead>
-        <tr><th>노드</th><th>역할 한 줄 요약</th><th>HR 활용 예시</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><strong>Webhook</strong></td><td>외부 HTTP 요청 수신 → 시작</td><td>채용 지원서 제출 시 자동 처리</td></tr>
-        <tr><td><strong>Schedule Trigger</strong></td><td>정해진 시간에 자동 실행</td><td>매주 월요일 인력 현황 보고서 생성</td></tr>
-        <tr><td><strong>Manual Trigger</strong></td><td>버튼 클릭으로 수동 실행</td><td>개발·테스트 시 즉시 실행</td></tr>
-        <tr><td><strong>Error Trigger</strong></td><td>에러 발생 시 자동 실행</td><td>워크플로우 실패 시 담당자 슬랙 알림</td></tr>
-        <tr><td><strong>Chat Trigger</strong></td><td>채팅 UI로 워크플로우 시작</td><td>HR 정책 Q&A 챗봇 인터페이스</td></tr>
-        <tr><td><strong>Edit Fields (Set)</strong></td><td>데이터 필드 추가·수정·삭제</td><td>사원번호 형식 통일, 불필요 필드 제거</td></tr>
-        <tr><td><strong>Code</strong></td><td>JS/Python 코드 직접 실행</td><td>복잡한 날짜 계산, 문자열 파싱</td></tr>
-        <tr><td><strong>HTTP Request</strong></td><td>외부 API 호출</td><td>사내 ERP API에서 인사 데이터 가져오기</td></tr>
-        <tr><td><strong>IF</strong></td><td>조건 분기 (True / False)</td><td>승인 상태에 따라 다른 메일 발송</td></tr>
-        <tr><td><strong>Switch</strong></td><td>다중 조건 분기 (3개 이상)</td><td>부서별로 다른 온보딩 프로세스 실행</td></tr>
-        <tr><td><strong>Merge</strong></td><td>여러 경로 데이터를 하나로 합침</td><td>인사DB + 급여DB 정보를 합쳐 보고서 생성</td></tr>
-        <tr><td><strong>Loop Over Items</strong></td><td>대량 데이터를 N개씩 나눠 처리</td><td>임직원 1,000명에게 순차 메일 발송</td></tr>
-        <tr><td><strong>Wait</strong></td><td>일정 시간 대기 후 계속 실행</td><td>이메일 발송 후 1시간 대기 → 후속 조치</td></tr>
-        <tr><td><strong>Stop and Error</strong></td><td>강제 중단 및 에러 메시지</td><td>필수 데이터 누락 시 명시적 실패 처리</td></tr>
-        <tr><td><strong>Execute Sub-workflow</strong></td><td>다른 워크플로우 호출</td><td>공통 알림 로직 분리 후 재사용</td></tr>
-        <tr><td><strong>AI Agent</strong></td><td>LLM이 스스로 도구를 선택해 실행</td><td>HR 정책 Q&A 챗봇, 채용 공고 초안 작성</td></tr>
-        <tr><td><strong>Google Sheets</strong></td><td>구글 스프레드시트 읽기/쓰기</td><td>설문 결과 자동 집계, 교육 이수 현황 업데이트</td></tr>
-        <tr><td><strong>Teams / Outlook</strong></td><td>O365 메시지·이메일 발송</td><td>O365 기반 기업 내 자동 알림 발송</td></tr>
-        <tr><td><strong>Sticky Note</strong></td><td>캔버스 메모 (실행에 영향 없음)</td><td>워크플로우 설명, 담당자 정보 기록</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
+<!-- ════ FOOTER ════════════════════════════════════════════ -->
 <footer>
-  <p>데이터팝콘 · n8n 노드 레퍼런스 카드</p>
-  <p style="margin-top:4px;">n8n 공식 문서: <a href="https://docs.n8n.io">docs.n8n.io</a></p>
+  <span>
+    <span class="ko">by <a href="https://datapopcorn.ai" style="color:var(--accent2);text-decoration:none;font-weight:600">데이터팝콘</a> · n8n 공식 글로벌 앰배서더</span>
+    <span class="en">by <a href="https://datapopcorn.ai" style="color:var(--accent2);text-decoration:none;font-weight:600">DataPopcorn</a> · Official n8n Ambassador</span>
+  </span>
+  <span style="color:var(--faint)">
+    <span class="ko">인쇄 팁: Cmd/Ctrl+P → A4 · 배경 그래픽 OFF → 심플 2장 / 심화 4장</span>
+    <span class="en">Print tip: Cmd/Ctrl+P → A4 · No background → Basic 2p / Advanced 4p</span>
+  </span>
 </footer>
 
+<script>
+(function() {
+  const html = document.documentElement;
+
+  // 언어 복원
+  const savedLang = localStorage.getItem('n8n-cs-lang');
+  if (savedLang === 'en') html.lang = 'en';
+
+  // 모드 복원
+  const savedMode = localStorage.getItem('n8n-cs-mode');
+  if (savedMode === 'adv') html.dataset.mode = 'adv';
+
+  // 언어 토글
+  document.getElementById('lang-toggle').addEventListener('click', function() {
+    const next = html.lang === 'ko' ? 'en' : 'ko';
+    html.lang = next;
+    localStorage.setItem('n8n-cs-lang', next);
+  });
+
+  // 심플/심화 토글
+  document.getElementById('mode-simple').addEventListener('click', function() {
+    html.dataset.mode = 'simple';
+    localStorage.setItem('n8n-cs-mode', 'simple');
+  });
+  document.getElementById('mode-adv').addEventListener('click', function() {
+    html.dataset.mode = 'adv';
+    localStorage.setItem('n8n-cs-mode', 'adv');
+  });
+})();
+</script>
 </body>
 </html>
