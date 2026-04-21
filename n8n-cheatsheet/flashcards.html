@@ -473,7 +473,10 @@ function iconHtml(node, size = 'front') {
   if (node.imgSrc) {
     return `<img src="${node.imgSrc}" style="width:${sz+4}px;height:${sz+4}px;object-fit:contain">`;
   }
-  return node.icon.replace(/width="\d+"/, `width="${sz}"`).replace(/height="\d+"/, `height="${sz}"`);
+  return node.icon
+    .replace(/stroke="currentColor"/g, `stroke="${node.color}"`)
+    .replace(/fill="currentColor"/g, `fill="${node.color}"`)
+    .replace('<svg ', `<svg width="${sz}" height="${sz}" `);
 }
 
 function render() {
