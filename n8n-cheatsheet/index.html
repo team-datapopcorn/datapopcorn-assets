@@ -284,6 +284,14 @@ footer {
 .nr-icon-svg {
   width: 16px; height: 16px; flex-shrink: 0; overflow: visible;
 }
+.nr-node-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  background: currentColor;
+  -webkit-mask: var(--icon-url) center / contain no-repeat;
+  mask: var(--icon-url) center / contain no-repeat;
+}
 .nr-icon-img { width: 18px; height: 18px; object-fit: contain; }
 .nr-body { flex: 1; min-width: 0; }
 .nr-name { font-size: 11.5px; font-weight: 700; margin-bottom: 1px; line-height: 1.2; }
@@ -1411,6 +1419,41 @@ docker stop n8n && docker rm n8n
 
 <script>
 (function() {
+  const n8nIconBase = 'https://unpkg.com/@n8n/design-system@2.18.1/src/components/N8nIcon/nodes/';
+  const n8nNodeIcons = {
+    'n8n-nodes-base.webhook': 'webhook',
+    'n8n-nodes-base.scheduleTrigger': 'schedule-trigger',
+    'n8n-nodes-base.manualTrigger': 'manual-trigger',
+    'n8n-nodes-base.errorTrigger': 'error-trigger',
+    '@n8n/n8n-nodes-langchain.chatTrigger': 'chat-trigger',
+    'n8n-nodes-base.set': 'edit-fields',
+    'n8n-nodes-base.code': 'code',
+    'n8n-nodes-base.httpRequest': 'http-request',
+    'n8n-nodes-base.if': 'if',
+    'n8n-nodes-base.switch': 'switch',
+    'n8n-nodes-base.merge': 'merge',
+    'n8n-nodes-base.splitInBatches': 'loop-over-items',
+    'n8n-nodes-base.wait': 'wait',
+    'n8n-nodes-base.stopAndError': 'stop-and-error',
+    'n8n-nodes-base.noOp': 'no-operation',
+    'n8n-nodes-base.executeWorkflow': 'execute-sub-workflow',
+    '@n8n/n8n-nodes-langchain.agent': 'ai-agent',
+  };
+
+  document.querySelectorAll('.nr-card').forEach((card) => {
+    const type = card.querySelector('.nr-type')?.textContent.trim();
+    const iconName = n8nNodeIcons[type];
+    const iconWrap = card.querySelector('.nr-icon-wrap');
+    if (!iconName || !iconWrap) return;
+
+    iconWrap.innerHTML = '';
+    const icon = document.createElement('span');
+    icon.className = 'nr-node-icon';
+    icon.style.setProperty('--icon-url', `url("${n8nIconBase}${iconName}.svg")`);
+    icon.setAttribute('role', 'img');
+    icon.setAttribute('aria-label', card.querySelector('.nr-name')?.textContent.trim() ?? iconName);
+    iconWrap.appendChild(icon);
+  });
 
   // 탭 전환
   document.querySelectorAll('.main-tab-btn').forEach(btn => {
