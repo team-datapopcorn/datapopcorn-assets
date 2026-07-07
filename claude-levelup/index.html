@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>클로드 레벨업 · 데이터팝콘</title>
+<meta name="description" content="듀오링고처럼 레벨을 깨며 배우는 클로드 입문 게임. 클로드 기본, 프롬프트, 크롬 확장, 클로드 코드까지 초보자용 퀴즈 레슨.">
+<meta property="og:title" content="클로드 레벨업 · 데이터팝콘">
+<meta property="og:description" content="레벨을 깨며 배우는 클로드 입문 게임 — XP, 하트, 스트릭과 함께!">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ff6d5a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍿</text></svg>">
+<style>
+/* ─── Design Tokens ─────────────────────────────────────── */
+:root {
+  --ink:    #3c3c3c;
+  --mute:   #777;
+  --faint:  #aaa;
+  --line:   #e5e5e5;
+  --bg:     #fbf8f2;
+  --card:   #ffffff;
+  --accent: #ff6d5a;
+  --accent-dk: #e0523f;
+  --green:  #58cc02;
+  --green-dk: #46a302;
+  --red:    #ff4b4b;
+  --red-dk:  #d33131;
+  --gold:   #ffc800;
+  --radius: 16px;
+  --font: -apple-system, "Pretendard Variable", Pretendard, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: var(--font); background: var(--bg); color: var(--ink);
+  min-height: 100vh; line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font-family: var(--font); cursor: pointer; }
+
+.screen { display: none; }
+.screen.active { display: block; }
+
+/* ─── 3D chunky button ─────────────────────────────────── */
+.btn {
+  display: inline-block; border: none; border-radius: 14px;
+  font-weight: 800; font-size: 1rem; padding: .8em 1.6em;
+  color: #fff; background: var(--green);
+  box-shadow: 0 4px 0 var(--green-dk);
+  transition: transform .06s, box-shadow .06s, filter .15s;
+  user-select: none; letter-spacing: .02em;
+}
+.btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--green-dk); }
+.btn:disabled { background: #e5e5e5; box-shadow: 0 4px 0 #cfcfcf; color: #afafaf; cursor: not-allowed; }
+.btn.coral { background: var(--accent); box-shadow: 0 4px 0 var(--accent-dk); }
+.btn.coral:active { box-shadow: 0 0 0 var(--accent-dk); }
+.btn.ghost {
+  background: #fff; color: var(--mute); border: 2px solid var(--line);
+  box-shadow: 0 4px 0 var(--line);
+}
+.btn.ghost:active { box-shadow: 0 0 0 var(--line); }
+.btn.red { background: var(--red); box-shadow: 0 4px 0 var(--red-dk); }
+.btn.red:active { box-shadow: 0 0 0 var(--red-dk); }
+
+/* ─── Map screen ───────────────────────────────────────── */
+#map { max-width: 520px; margin: 0 auto; padding: 0 1rem 4rem; }
+
+.hud {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--bg); border-bottom: 2px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .8rem .2rem; margin-bottom: 1.2rem; gap: .6rem;
+}
+.hud .brand { font-weight: 900; font-size: 1.05rem; }
+.hud .brand small { display: block; font-size: .68rem; color: var(--faint); font-weight: 700; }
+.hud .brand span { color: var(--accent); }
+.hud .stats { display: flex; gap: .7rem; font-weight: 800; font-size: .95rem; }
+.hud .stats .stat { display: flex; align-items: center; gap: .25em; }
+.hud .stats .xp { color: #f5a623; }
+.hud .stats .streak { color: var(--accent); }
+.hud .stats .stars { color: #d4a900; }
+
+.unit-banner {
+  border-radius: var(--radius); padding: 1rem 1.2rem; color: #fff;
+  margin: 2rem 0 1.4rem; box-shadow: 0 4px 0 rgba(0,0,0,.18);
+}
+.unit-banner .u-label { font-size: .72rem; font-weight: 800; opacity: .85; letter-spacing: .08em; }
+.unit-banner h2 { font-size: 1.2rem; font-weight: 900; }
+.unit-banner p { font-size: .82rem; opacity: .9; }
+
+.path { display: flex; flex-direction: column; align-items: center; gap: 1.5rem; }
+.node-wrap { display: flex; flex-direction: column; align-items: center; width: 130px; transition: transform .2s; }
+.node {
+  width: 76px; height: 76px; border-radius: 50%;
+  border: none; font-size: 2rem; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 0 rgba(0,0,0,.22);
+  transition: transform .06s, box-shadow .06s, filter .2s;
+  position: relative;
+}
+.node:active { transform: translateY(6px); box-shadow: 0 0 0 rgba(0,0,0,.22); }
+.node.locked { background: #e5e5e5 !important; box-shadow: 0 6px 0 #cfcfcf; cursor: not-allowed; filter: grayscale(1); }
+.node.boss { width: 96px; height: 96px; font-size: 2.6rem; }
+.node .start-tip {
+  position: absolute; top: -2.4rem; left: 50%; transform: translateX(-50%);
+  background: #fff; color: var(--green-dk); font-size: .72rem; font-weight: 900;
+  padding: .3em .8em; border-radius: 10px; border: 2px solid var(--line);
+  white-space: nowrap; animation: bob 1.2s ease-in-out infinite;
+}
+.node .start-tip::after {
+  content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 10px; height: 10px; background: #fff; border-right: 2px solid var(--line); border-bottom: 2px solid var(--line);
+}
+@keyframes bob { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-5px); } }
+.node-title { margin-top: .5rem; font-size: .78rem; font-weight: 800; color: var(--mute); text-align: center; }
+.node-stars { font-size: .8rem; letter-spacing: .05em; margin-top: .1rem; min-height: 1.1em; }
+
+.map-foot { text-align: center; margin-top: 3rem; color: var(--faint); font-size: .75rem; }
+.map-foot button { background: none; border: none; color: var(--faint); text-decoration: underline; font-size: .75rem; margin-top: .4rem; }
+
+/* ─── Lesson screen ────────────────────────────────────── */
+#lesson { max-width: 640px; margin: 0 auto; padding: 1rem 1rem 9rem; }
+.lesson-top { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.6rem; }
+.quit-btn { background: none; border: none; font-size: 1.4rem; color: var(--faint); line-height: 1; padding: .2rem; }
+.progress-track { flex: 1; height: 14px; background: #e5e5e5; border-radius: 99px; overflow: hidden; }
+.progress-fill {
+  height: 100%; width: 0%; border-radius: 99px;
+  background: var(--green); transition: width .4s cubic-bezier(.22,1,.36,1);
+}
+.hearts { font-size: 1rem; font-weight: 800; color: var(--red); display: flex; align-items: center; gap: .2em; }
+
+.q-kind { font-size: .78rem; font-weight: 900; color: var(--accent); letter-spacing: .06em; margin-bottom: .5rem; }
+.q-text { font-size: 1.25rem; font-weight: 800; margin-bottom: 1.4rem; word-break: keep-all; }
+.q-text .blank {
+  display: inline-block; min-width: 4.2em; border-bottom: 3px solid var(--accent);
+  color: var(--accent); text-align: center; font-weight: 900;
+}
+
+.choices { display: flex; flex-direction: column; gap: .7rem; }
+.choice {
+  text-align: left; background: #fff; border: 2px solid var(--line); border-radius: 14px;
+  padding: .85em 1.1em; font-size: .98rem; font-weight: 700; color: var(--ink);
+  box-shadow: 0 3px 0 var(--line); transition: all .12s; word-break: keep-all;
+}
+.choice:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line); }
+.choice.selected { border-color: #4aa8ff; box-shadow: 0 3px 0 #4aa8ff; background: #eef6ff; color: #1a6dc0; }
+.choice.correct { border-color: var(--green); box-shadow: 0 3px 0 var(--green); background: #eaffdd; color: var(--green-dk); }
+.choice.wrong { border-color: var(--red); box-shadow: 0 3px 0 var(--red); background: #ffeeee; color: var(--red-dk); }
+.choice:disabled { cursor: default; opacity: .95; }
+
+.choices.ox { flex-direction: row; }
+.choices.ox .choice { flex: 1; text-align: center; font-size: 1.6rem; font-weight: 900; padding: .7em 0; }
+.choices.ox .choice small { display: block; font-size: .72rem; font-weight: 800; color: var(--mute); }
+
+/* ─── Feedback bar ─────────────────────────────────────── */
+.foot-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  background: var(--card); border-top: 2px solid var(--line);
+  padding: 1rem;
+}
+.foot-inner { max-width: 640px; margin: 0 auto; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.foot-bar .msg { flex: 1; min-width: 200px; }
+.foot-bar .msg .headline { font-weight: 900; font-size: 1.05rem; }
+.foot-bar .msg .why { font-size: .85rem; color: var(--mute); margin-top: .15rem; word-break: keep-all; }
+.foot-bar.ok { background: #eaffdd; border-top-color: var(--green); }
+.foot-bar.ok .headline { color: var(--green-dk); }
+.foot-bar.bad { background: #ffeeee; border-top-color: var(--red); }
+.foot-bar.bad .headline { color: var(--red-dk); }
+
+/* ─── Result screen ────────────────────────────────────── */
+#result { max-width: 480px; margin: 0 auto; padding: 3.5rem 1.5rem; text-align: center; }
+#result .big { font-size: 4.5rem; animation: pop .5s cubic-bezier(.22,1.61,.36,1); }
+@keyframes pop { from { transform: scale(.2); } to { transform: scale(1); } }
+#result h2 { font-size: 1.6rem; font-weight: 900; margin: .6rem 0 .3rem; }
+#result .sub { color: var(--mute); font-weight: 600; margin-bottom: 1.6rem; word-break: keep-all; }
+.result-stars { font-size: 2.4rem; letter-spacing: .1em; margin-bottom: 1rem; }
+.result-stars .dim { opacity: .22; }
+.reward-cards { display: flex; gap: .8rem; justify-content: center; margin-bottom: 2rem; }
+.reward {
+  background: #fff; border: 2px solid var(--line); border-radius: var(--radius);
+  padding: .8rem 1.2rem; min-width: 110px;
+}
+.reward .r-label { font-size: .68rem; font-weight: 900; color: var(--faint); letter-spacing: .08em; }
+.reward .r-val { font-size: 1.4rem; font-weight: 900; }
+.reward .r-val.xp { color: #f5a623; }
+.reward .r-val.streak { color: var(--accent); }
+#result .actions { display: flex; flex-direction: column; gap: .8rem; align-items: stretch; }
+
+/* ─── Confetti ─────────────────────────────────────────── */
+.confetti {
+  position: fixed; top: -8vh; z-index: 50; font-size: 1.4rem;
+  animation: fall linear forwards; pointer-events: none;
+}
+@keyframes fall {
+  to { transform: translateY(115vh) rotate(720deg); opacity: .6; }
+}
+
+@media (max-width: 420px) {
+  .q-text { font-size: 1.1rem; }
+  .hud .stats { font-size: .85rem; gap: .5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════ MAP ════════ -->
+<div id="map" class="screen active">
+  <div class="hud">
+    <div class="brand">🍿 클로드 <span>레벨업</span><small>DataPopcorn Academy</small></div>
+    <div class="stats">
+      <span class="stat xp" title="경험치">⚡ <b id="hud-xp">0</b></span>
+      <span class="stat streak" title="연속 학습일">🔥 <b id="hud-streak">0</b></span>
+      <span class="stat stars" title="획득한 별">⭐ <b id="hud-stars">0</b></span>
+    </div>
+  </div>
+  <p style="text-align:center; color:var(--mute); font-size:.88rem; margin-bottom:.5rem; word-break:keep-all;">
+    듀오링고처럼 한 레벨씩 깨면서 <b>클로드</b>를 배워요.<br>레벨을 눌러 시작하세요!
+  </p>
+  <div id="path-root"></div>
+  <div class="map-foot">
+    진행 상황은 이 브라우저에 자동 저장돼요.<br>
+    <button id="reset-btn">진행 상황 초기화</button>
+  </div>
+</div>
+
+<!-- ════════ LESSON ════════ -->
+<div id="lesson" class="screen">
+  <div class="lesson-top">
+    <button class="quit-btn" id="quit-btn" title="그만두기">✕</button>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="hearts" id="hearts">❤️ 3</div>
+  </div>
+  <div class="q-kind" id="q-kind"></div>
+  <div class="q-text" id="q-text"></div>
+  <div class="choices" id="choices"></div>
+
+  <div class="foot-bar" id="foot-bar">
+    <div class="foot-inner">
+      <div class="msg" id="foot-msg"><div class="headline" id="foot-headline"></div><div class="why" id="foot-why"></div></div>
+      <button class="btn" id="check-btn" disabled>확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ RESULT ════════ -->
+<div id="result" class="screen">
+  <div class="big" id="res-emoji">🎉</div>
+  <h2 id="res-title">레벨 클리어!</h2>
+  <p class="sub" id="res-sub"></p>
+  <div class="result-stars" id="res-stars"></div>
+  <div class="reward-cards">
+    <div class="reward"><div class="r-label">획득 XP</div><div class="r-val xp" id="res-xp">+0</div></div>
+    <div class="reward"><div class="r-label">연속 학습</div><div class="r-val streak" id="res-streak">0일</div></div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="res-continue">계속하기</button>
+    <button class="btn ghost" id="res-retry">다시 도전 🔁</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════
+   콘텐츠 데이터 — 유닛 › 레슨 › 문제
+   문제 타입: mc(객관식) / ox(참·거짓) / blank(빈칸 채우기)
+   mc·blank: c = 보기 배열, a = 정답 인덱스(항상 원본 기준)
+   ════════════════════════════════════════════════════════ */
+const UNITS = [
+{
+  id: "u1", name: "클로드 첫걸음", desc: "claude.ai에서 클로드와 친해지기", color: "#FF6D5A", shade: "#D9503E",
+  lessons: [
+    { id: "u1l1", title: "클로드가 뭐예요?", icon: "👋", questions: [
+      { t:"mc", q:"클로드(Claude)는 무엇일까요?",
+        c:["Anthropic이 만든 AI 어시스턴트","이메일 서비스","웹 브라우저","파일 저장 클라우드"], a:0,
+        why:"클로드는 Anthropic이 만든 AI 어시스턴트예요. 글쓰기·요약·코딩·분석 등 다양한 일을 도와줘요." },
+      { t:"ox", q:"클로드는 웹사이트 claude.ai에서 회원가입만 하면 무료로 시작할 수 있다.", a:true,
+        why:"무료 플랜으로 바로 시작할 수 있어요. 더 많이 쓰고 싶으면 유료 플랜으로 올리면 돼요." },
+      { t:"blank", q:"클로드에게 보내는 질문이나 요청 문장을 ___라고 불러요.",
+        c:["프롬프트","패스워드","도메인"], a:0,
+        why:"AI에게 입력하는 지시문을 '프롬프트'라고 해요. 프롬프트가 좋을수록 답변도 좋아져요." },
+      { t:"mc", q:"클로드가 잘하는 일이 아닌 것은?",
+        c:["집 앞으로 택배를 직접 배달하기","긴 글 요약하기","이메일 초안 쓰기","코드 작성하기"], a:0,
+        why:"클로드는 글·코드·분석 같은 디지털 작업을 돕는 AI예요. 물리적인 일은 할 수 없어요." },
+      { t:"mc", q:"클로드를 쓸 수 있는 곳이 아닌 것은?",
+        c:["팩스 전용 단말기","claude.ai 웹·모바일 앱","터미널의 '클로드 코드'","크롬 확장 프로그램"], a:0,
+        why:"클로드는 웹·모바일 앱, 터미널용 클로드 코드, 크롬 확장 등 여러 곳에서 쓸 수 있어요." },
+    ]},
+    { id: "u1l2", title: "첫 대화 시작하기", icon: "💬", questions: [
+      { t:"ox", q:"질문이 구체적일수록 클로드의 답변 품질이 좋아진다.", a:true,
+        why:"막연한 질문보다 상황·목적·조건을 담은 질문이 훨씬 좋은 답을 끌어내요." },
+      { t:"mc", q:"긴 문서를 요약하고 싶을 때 가장 좋은 방법은?",
+        c:["파일을 업로드하거나 내용을 붙여넣고 '요약해줘'라고 요청한다","'그 문서 알지? 요약해줘'라고만 말한다","문서 제목만 알려준다","링크 없이 '알아서 찾아줘'라고 한다"], a:0,
+        why:"클로드는 여러분이 준 자료를 바탕으로 일해요. 자료를 직접 보여주는 게 가장 정확해요." },
+      { t:"mc", q:"답변이 마음에 들지 않을 때 가장 좋은 행동은?",
+        c:["'더 짧게, 존댓말로 다시 써줘'처럼 구체적으로 다시 요청한다","조용히 창을 닫는다","같은 질문을 그대로 복사해서 다시 보낸다","화를 낸다"], a:0,
+        why:"클로드는 피드백을 받으면 바로 고쳐줘요. 원하는 방향을 알려주는 게 핵심!" },
+      { t:"ox", q:"새 대화를 열면 클로드는 기본적으로 이전 대화 내용을 모른다.", a:true,
+        why:"대화는 각각 독립적이에요. 이어가고 싶으면 같은 대화에서 계속하거나 프로젝트 기능을 활용하세요." },
+      { t:"blank", q:"같은 대화 안에서는 '방금 답변을 표로 바꿔줘'처럼 ___ 요청을 할 수 있어요.",
+        c:["이어서(후속)","환불","로그아웃"], a:0,
+        why:"클로드는 대화의 흐름을 기억해요. 조금씩 다듬어가며 완성하는 게 좋은 사용법이에요." },
+    ]},
+    { id: "u1l3", title: "아티팩트 & 프로젝트", icon: "📦", questions: [
+      { t:"mc", q:"아티팩트(Artifacts)는 무엇인가요?",
+        c:["클로드가 만든 문서·코드·미니앱을 옆 창에서 보여주는 기능","파일 압축 프로그램","광고 차단 기능","화면 캡처 도구"], a:0,
+        why:"글, 코드, 심지어 작동하는 웹페이지까지 옆 패널에서 바로 보고 고칠 수 있어요." },
+      { t:"ox", q:"프로젝트(Projects)에 자료와 지침을 올려두면, 그 프로젝트 안의 대화에서 클로드가 이를 참고한다.", a:true,
+        why:"자주 쓰는 자료·규칙은 프로젝트에 넣어두면 매번 설명하지 않아도 돼요." },
+      { t:"mc", q:"이미지 속 내용을 클로드에게 물어보려면?",
+        c:["채팅창에 이미지를 첨부하고 질문한다","이미지를 말로 최대한 설명한다 (첨부 불가)","이미지는 절대 처리할 수 없다","이미지 파일명만 알려준다"], a:0,
+        why:"클로드는 이미지를 '보고' 이해할 수 있어요. 스크린샷, 사진, 도표 모두 OK!" },
+      { t:"blank", q:"매번 반복해서 쓰는 지시사항은 프로젝트의 ___에 저장해두면 편해요.",
+        c:["지침(instructions)","휴지통","북마크바"], a:0,
+        why:"'항상 존댓말로', '우리 회사 톤으로' 같은 규칙을 지침에 넣으면 자동으로 적용돼요." },
+      { t:"mc", q:"최신 뉴스처럼 실시간 정보를 물어보면 클로드는?",
+        c:["웹 검색 기능으로 최신 정보를 찾아 답할 수 있다","작년 정보만 알 수 있다","검색은 불가능하다","유튜브만 검색할 수 있다"], a:0,
+        why:"클로드는 웹 검색으로 최신 정보를 확인할 수 있어요. 단, 중요한 내용은 출처도 확인하세요." },
+    ]},
+  ]
+},
+{
+  id: "u2", name: "프롬프트 레벨업", desc: "원하는 답을 끌어내는 질문의 기술", color: "#6366F1", shade: "#4B4DD1",
+  lessons: [
+    { id: "u2l1", title: "좋은 프롬프트의 3요소", icon: "✍️", questions: [
+      { t:"mc", q:"좋은 프롬프트의 3요소로 가장 알맞은 것은?",
+        c:["맥락 + 구체적인 요청 + 원하는 형식","인사 + 칭찬 + 부탁","길게 + 어렵게 + 전문용어","이모지 + 느낌표 + 대문자"], a:0,
+        why:"상황(맥락)을 주고, 무엇을 원하는지 구체적으로, 어떤 형태로 받을지까지 말하면 완벽해요." },
+      { t:"blank", q:"'너는 10년차 마케터야'처럼 ___을 부여하면 답변의 관점이 잡혀요.",
+        c:["역할","벌점","아이디"], a:0,
+        why:"역할을 주면 클로드가 그 전문가의 시각으로 답해요. 초보자에게 가장 쉬운 프롬프트 기술!" },
+      { t:"ox", q:"'잘 써줘'보다 '300자 이내, 존댓말, 이메일 형식으로 써줘'가 더 좋은 프롬프트다.", a:true,
+        why:"길이·톤·형식을 정해주면 원하는 결과가 한 번에 나올 확률이 확 올라가요." },
+      { t:"mc", q:"원하는 스타일의 예시를 함께 보여주며 요청하는 기법은?",
+        c:["예시 제공 (few-shot)","캐시 삭제","하드코딩","새로고침"], a:0,
+        why:"'이런 느낌으로 써줘' 하고 예시를 1~2개 보여주면 스타일을 정확히 맞춰줘요." },
+      { t:"mc", q:"결과물이 너무 길게 나올 때 가장 좋은 요청은?",
+        c:["'핵심만 3문장으로 줄여줘'","'음...'이라고 보낸다","다시 똑같이 물어본다","길이는 바꿀 수 없으니 포기한다"], a:0,
+        why:"원하는 분량을 숫자로 말하면 딱 맞춰줘요. '표로', '불릿 5개로'도 좋아요." },
+    ]},
+    { id: "u2l2", title: "단계별로 시키기", icon: "🪜", questions: [
+      { t:"ox", q:"복잡한 작업은 한 번에 다 시키는 것보다 단계를 나눠 시키는 게 좋다.", a:true,
+        why:"'기획 → 초안 → 다듬기'처럼 나누면 각 단계에서 방향을 잡아줄 수 있어요." },
+      { t:"mc", q:"어려운 문제를 풀 때 유용한 요청은?",
+        c:["'단계별로 차근차근 생각해서 풀어줘'","'빨리 답만 내놔'","'대충 해줘'","'생각하지 말고 답해'"], a:0,
+        why:"풀이 과정을 요청하면 더 정확해지고, 어디서 틀렸는지 확인하기도 쉬워요." },
+      { t:"blank", q:"표나 JSON처럼 ___ 형식을 지정하면 결과를 바로 활용하기 좋아요.",
+        c:["출력","세금","압축"], a:0,
+        why:"'표로 정리해줘', 'JSON으로 줘'라고 하면 복사해서 바로 쓸 수 있는 형태로 받아요." },
+      { t:"ox", q:"클로드도 틀릴 수 있으므로, 중요한 사실·숫자는 꼭 검증해야 한다.", a:true,
+        why:"AI가 그럴듯하지만 틀린 내용을 말하는 것을 '할루시네이션(환각)'이라고 해요." },
+      { t:"mc", q:"사실 확인이 중요한 답변을 받을 때 좋은 습관은?",
+        c:["출처를 함께 요청하고 직접 확인한다","무조건 믿는다","숫자는 원래 다 정확하다","답이 길면 정확한 것이다"], a:0,
+        why:"'출처 링크도 알려줘'라고 요청하고, 중요한 결정 전엔 원문을 직접 확인하세요." },
+    ]},
+    { id: "u2l3", title: "실전 활용", icon: "🚀", questions: [
+      { t:"mc", q:"회의록에서 할 일을 뽑고 싶을 때 가장 좋은 프롬프트는?",
+        c:["회의록을 붙여넣고 '담당자별 할 일을 표로 정리해줘'","'회의 어땠어?'","회의록 없이 '할 일이 뭘까?'","'요약'이라고 한 단어만 보낸다"], a:0,
+        why:"자료 + 구체적 요청 + 형식 지정. 배운 3요소가 그대로 들어간 프롬프트예요!" },
+      { t:"mc", q:"번역을 시킬 때 품질을 높이는 방법은?",
+        c:["대상 독자와 톤을 함께 알려준다 (예: 격식 있는 비즈니스 이메일)","무조건 직역만 시킨다","한 글자씩 나눠 보낸다","톤은 지정할 수 없다"], a:0,
+        why:"'해외 고객에게 보내는 정중한 이메일'처럼 맥락을 주면 뉘앙스까지 살려 번역해줘요." },
+      { t:"ox", q:"주민등록번호 같은 민감한 개인정보는 꼭 필요한 경우가 아니면 프롬프트에 넣지 않는 게 좋다.", a:true,
+        why:"어떤 도구든 민감정보는 최소한만! 필요하면 가리거나 가짜 값으로 바꿔서 넣으세요." },
+      { t:"blank", q:"답변에 대해 '왜 그렇게 생각해?'처럼 ___ 질문을 하면 더 깊은 답을 얻을 수 있어요.",
+        c:["꼬리(후속)","스팸","무한"], a:0,
+        why:"한 번에 끝내지 말고 대화하듯 파고드세요. '반대 의견은?', '근거는?'도 좋아요." },
+      { t:"mc", q:"블로그 글을 쓸 때 좋은 협업 방식은?",
+        c:["목차 먼저 → 확인 후 본문 → 다듬기 순서로 나눠 진행","한 번에 완성본을 받아 그대로 발행","제목만 100개 뽑기","맞춤법 검사만 맡기기"], a:0,
+        why:"단계마다 내 의견을 반영하면 '내 글'이 돼요. AI는 대신 쓰는 게 아니라 함께 쓰는 도구!" },
+    ]},
+  ]
+},
+{
+  id: "u3", name: "클로드 in 크롬", desc: "브라우저에서 클로드와 함께 일하기", color: "#F59E0B", shade: "#CE8409",
+  lessons: [
+    { id: "u3l1", title: "크롬 확장 시작하기", icon: "🌐", questions: [
+      { t:"mc", q:"'Claude in Chrome'(크롬 확장)은 무엇인가요?",
+        c:["크롬에서 클로드가 웹페이지를 보고 도와주는 확장 프로그램","새로운 웹브라우저","크롬 테마","VPN 서비스"], a:0,
+        why:"크롬에 설치하면 지금 보는 페이지를 클로드가 함께 보며 도와줘요." },
+      { t:"ox", q:"지금 보고 있는 웹페이지 내용을 요약해달라고 할 수 있다.", a:true,
+        why:"복사·붙여넣기 없이 '이 페이지 요약해줘' 한마디면 끝!" },
+      { t:"blank", q:"크롬 웹스토어에서 ___을 설치하면 사이드 패널에서 클로드를 쓸 수 있어요.",
+        c:["확장 프로그램","운영체제","그래픽카드"], a:0,
+        why:"크롬 웹스토어에서 Claude 확장 프로그램을 설치하고 로그인하면 준비 완료예요." },
+      { t:"mc", q:"크롬 확장에서 클로드가 도와줄 수 있는 일은?",
+        c:["페이지 요약, 폼 작성 도움, 브라우저에서 대신 작업하기","컴퓨터 포맷","하드웨어 수리","와이파이 설치"], a:0,
+        why:"보고 있는 페이지에 대한 질문부터 브라우저 작업 대행까지 가능해요." },
+      { t:"ox", q:"클로드는 브라우저에서 여러분 대신 클릭하고 입력하는 '에이전트' 작업도 할 수 있다.", a:true,
+        why:"허락을 받고 대신 탭을 조작할 수 있어요. 진행 상황을 지켜보면서 쓰는 게 좋아요." },
+    ]},
+    { id: "u3l2", title: "안전하게 쓰기", icon: "🛡️", questions: [
+      { t:"mc", q:"클로드가 브라우저에서 중요한 작업(구매, 전송 등)을 하기 전에 하는 일은?",
+        c:["사용자에게 확인(허가)을 요청한다","말없이 실행한다","자동으로 결제까지 한다","브라우저를 종료한다"], a:0,
+        why:"중요한 행동 전에는 꼭 확인을 거쳐요. 확인 요청은 귀찮은 게 아니라 안전장치예요." },
+      { t:"ox", q:"은행 비밀번호 입력처럼 민감한 작업은 클로드에게 맡기지 말고 직접 하는 게 좋다.", a:true,
+        why:"금융·비밀번호·결제 정보는 직접! AI에게는 그 앞뒤의 조사·정리를 맡기세요." },
+      { t:"mc", q:"사이트 접근 권한은 어떻게 관리하는 게 좋을까요?",
+        c:["사이트별로 허용 범위를 확인하고 필요한 곳만 허용","모든 사이트 무조건 허용","권한은 신경 쓰지 않는다","한 번 허용하면 바꿀 수 없다"], a:0,
+        why:"설정에서 사이트별 권한을 언제든 확인·변경할 수 있어요." },
+      { t:"blank", q:"웹페이지에 숨겨진 악성 지시로 AI를 속이는 공격을 '프롬프트 ___'이라고 해요.",
+        c:["인젝션","다이어트","리믹스"], a:0,
+        why:"그래서 클로드는 의심스러운 지시를 만나면 멈추고 사용자에게 확인해요." },
+      { t:"ox", q:"편하니까 모든 사이트에 '항상 자동 허용'을 켜두는 것이 가장 안전하다.", a:false,
+        why:"편리함보다 안전! 민감한 사이트일수록 확인 단계를 유지하는 게 좋아요." },
+    ]},
+    { id: "u3l3", title: "활용 시나리오", icon: "🛒", questions: [
+      { t:"mc", q:"쇼핑할 때 크롬의 클로드를 활용하는 좋은 예는?",
+        c:["여러 상품 페이지를 비교해 장단점을 정리해달라고 하기","무조건 첫 번째 상품 구매","리뷰를 안 읽기","가격 비교는 불가능하다"], a:0,
+        why:"열어둔 탭들을 보고 스펙·가격·리뷰를 표로 정리해줄 수 있어요." },
+      { t:"ox", q:"긴 뉴스 기사를 읽기 전에 핵심 요약을 먼저 받아볼 수 있다.", a:true,
+        why:"'3줄 요약해줘' 후에 궁금한 부분만 파고들면 시간이 확 절약돼요." },
+      { t:"mc", q:"이메일 답장을 쓸 때 좋은 흐름은?",
+        c:["클로드가 초안 작성 → 내가 검토·수정 → 전송","클로드가 검토 없이 바로 전송","답장하지 않기","제목만 쓰기"], a:0,
+        why:"초안은 AI, 최종 확인과 전송 버튼은 나. 이게 안전한 협업 공식이에요." },
+      { t:"blank", q:"여러 ___을 오가며 정보를 모아 정리하는 작업도 시킬 수 있어요.",
+        c:["탭","프린터","케이블"], a:0,
+        why:"'열려 있는 탭 3개의 내용을 비교해줘'처럼 탭을 넘나드는 작업이 가능해요." },
+      { t:"ox", q:"클로드가 대신 작업한 결과라도, 제출·전송 전에 내가 확인하는 습관이 중요하다.", a:true,
+        why:"마지막 확인은 언제나 사람의 몫! 이 습관 하나면 대부분의 사고를 막을 수 있어요." },
+    ]},
+  ]
+},
+{
+  id: "u4", name: "클로드 코드", desc: "말로 하는 코딩, 터미널의 AI 동료", color: "#7C3AED", shade: "#6128C4",
+  lessons: [
+    { id: "u4l1", title: "클로드 코드란?", icon: "💻", questions: [
+      { t:"mc", q:"클로드 코드(Claude Code)는 무엇인가요?",
+        c:["터미널·IDE·웹에서 코드를 읽고 수정해주는 AI 코딩 도구","동영상 편집기","게임 런처","폰트 모음"], a:0,
+        why:"프로젝트 폴더를 통째로 이해하고 파일 수정, 명령 실행, 테스트까지 해주는 코딩 에이전트예요." },
+      { t:"ox", q:"코딩을 잘 몰라도 '이런 웹페이지 만들어줘'라고 말로 시킬 수 있다.", a:true,
+        why:"원하는 걸 말로 설명하면 파일 생성부터 실행까지 도와줘요. 초보자도 환영!" },
+      { t:"blank", q:"터미널에서 ___ 라고 입력하면 클로드 코드가 시작돼요.",
+        c:["claude","hello","start.exe"], a:0,
+        why:"설치 후 프로젝트 폴더에서 claude만 치면 대화가 시작돼요." },
+      { t:"mc", q:"클로드 코드가 할 수 있는 일이 아닌 것은?",
+        c:["고장 난 모니터 화면 수리","파일 읽고 수정하기","명령어 실행과 테스트","깃(Git) 커밋 만들기"], a:0,
+        why:"코드와 관련된 거의 모든 걸 할 수 있지만, 하드웨어는 고칠 수 없어요. 😄" },
+      { t:"ox", q:"클로드 코드는 터미널뿐 아니라 웹(claude.ai)과 데스크톱 앱에서도 쓸 수 있다.", a:true,
+        why:"터미널이 낯설다면 웹이나 앱에서 시작해도 좋아요." },
+    ]},
+    { id: "u4l2", title: "기본 사용법", icon: "🧰", questions: [
+      { t:"mc", q:"프로젝트 설명·규칙을 적어두면 클로드 코드가 매번 참고하는 파일은?",
+        c:["CLAUDE.md","secret.txt","readme.pdf","hosts"], a:0,
+        why:"CLAUDE.md에 프로젝트 소개, 자주 쓰는 명령, 규칙을 적어두면 매번 설명할 필요가 없어요." },
+      { t:"ox", q:"클로드 코드는 파일을 수정하거나 명령을 실행하기 전에 허락을 구할 수 있다.", a:true,
+        why:"권한 모드를 조절할 수 있어요. 처음엔 하나씩 확인하며 쓰는 걸 추천해요." },
+      { t:"blank", q:"/clear, /help처럼 /로 시작하는 명령을 ___ 커맨드라고 해요.",
+        c:["슬래시","백슬래시","해시태그"], a:0,
+        why:"슬래시 커맨드로 여러 기능을 빠르게 실행할 수 있어요. /help로 목록을 볼 수 있어요." },
+      { t:"mc", q:"새로운 작업을 시작하며 대화 기록을 비우고 싶을 때 쓰는 명령은?",
+        c:["/clear","/delete-all-files","/format-c","/bye"], a:0,
+        why:"작업 주제가 바뀌면 /clear로 새 출발! 대화가 깔끔해야 답변도 정확해져요." },
+      { t:"mc", q:"클로드 코드에 작업을 시키는 가장 좋은 방법은?",
+        c:["원하는 결과를 구체적으로 설명하기 (예: '로그인 버튼이 안 눌리는 버그 고쳐줘')","'알아서 잘 해줘'라고만 하기","무조건 영어로만 말하기","한 글자씩 입력하기"], a:0,
+        why:"챕터 2에서 배운 프롬프트 원칙이 여기서도 똑같이 통해요. 한국어도 잘 알아들어요!" },
+    ]},
+    { id: "u4l3", title: "한 단계 더", icon: "🎓", questions: [
+      { t:"ox", q:"클로드 코드는 변경사항을 깃(Git) 커밋으로 만들고 PR(풀 리퀘스트)까지 열 수 있다.", a:true,
+        why:"'지금까지 작업 커밋하고 PR 열어줘'라고 하면 커밋 메시지까지 알아서 써줘요." },
+      { t:"mc", q:"MCP(모델 컨텍스트 프로토콜)는 무엇일까요?",
+        c:["클로드를 외부 도구·데이터와 연결해주는 표준","모니터 케이블 규격","암호화폐 이름","동영상 코덱"], a:0,
+        why:"MCP로 슬랙, 노션, 데이터베이스 같은 외부 서비스를 클로드에 연결할 수 있어요." },
+      { t:"blank", q:"자주 반복하는 작업 절차는 ___로 저장해서 재사용할 수 있어요.",
+        c:["스킬(Skill)","임시파일","광고"], a:0,
+        why:"'배포 절차', '리뷰 체크리스트' 같은 반복 작업을 스킬로 만들면 명령 하나로 실행돼요." },
+      { t:"mc", q:"클로드 코드를 안전하게 쓰는 습관은?",
+        c:["변경 내용(diff)을 확인한 뒤 커밋한다","확인 없이 전부 자동 승인한다","백업 없이 바로 배포한다","에러 메시지는 무시한다"], a:0,
+        why:"AI가 바꾼 내용도 내 코드! 무엇이 바뀌었는지 확인하는 습관이 실력을 키워줘요." },
+      { t:"ox", q:"막히면 클로드 코드에게 '지금 뭘 하고 있는지 설명해줘'라고 물어봐도 된다.", a:true,
+        why:"계획을 먼저 물어보고 진행하는 것도 좋은 방법이에요. AI와의 협업도 결국 대화예요." },
+    ]},
+  ]
+},
+];
+
+const BOSS = { id: "boss", title: "보스전 · 종합 복습", icon: "👑", color: "#10B981", shade: "#0C8A61", count: 10 };
+const HEARTS_MAX = 3;
+const STORE_KEY = "claude-levelup-v1";
+
+/* ════════ 상태 ════════ */
+function freshState() { return { xp: 0, streak: 0, lastDay: null, levels: {} }; }
+let state = freshState();
+try {
+  const raw = localStorage.getItem(STORE_KEY);
+  if (raw) state = Object.assign(freshState(), JSON.parse(raw));
+} catch (e) { /* localStorage 미지원 환경은 세션 메모리로만 동작 */ }
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+const ALL_LESSONS = UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unit: u })));
+const ALL_QUESTIONS = UNITS.flatMap(u => u.lessons.flatMap(l => l.questions));
+
+function lessonIndex(id) { return ALL_LESSONS.findIndex(l => l.id === id); }
+function isUnlocked(id) {
+  if (id === "boss") return ALL_LESSONS.every(l => (state.levels[l.id] || 0) > 0);
+  const i = lessonIndex(id);
+  return i === 0 || (state.levels[ALL_LESSONS[i - 1].id] || 0) > 0;
+}
+function totalStars() {
+  return Object.values(state.levels).reduce((s, v) => s + v, 0);
+}
+
+/* ════════ 사운드 (Web Audio) ════════ */
+let audioCtx = null;
+function tone(freq, start, dur, type = "sine", gain = 0.12) {
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(gain, audioCtx.currentTime + start);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + start + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(audioCtx.currentTime + start); o.stop(audioCtx.currentTime + start + dur);
+}
+function sfx(kind) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (kind === "ok") { tone(660, 0, .12); tone(880, .1, .18); }
+    else if (kind === "bad") { tone(220, 0, .25, "sawtooth", .08); tone(180, .12, .3, "sawtooth", .08); }
+    else if (kind === "win") { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .12, .25)); }
+  } catch (e) {}
+}
+
+/* ════════ 화면 전환 ════════ */
+const $ = (s) => document.querySelector(s);
+function show(id) {
+  document.querySelectorAll(".screen").forEach(el => el.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+/* ════════ 맵 렌더링 ════════ */
+function renderMap() {
+  $("#hud-xp").textContent = state.xp;
+  $("#hud-streak").textContent = state.streak;
+  $("#hud-stars").textContent = totalStars();
+
+  const root = $("#path-root");
+  root.innerHTML = "";
+  let globalIdx = 0;
+  let firstAvailableSeen = false;
+
+  UNITS.forEach((u, ui) => {
+    const banner = document.createElement("div");
+    banner.className = "unit-banner";
+    banner.style.background = u.color;
+    banner.style.boxShadow = `0 4px 0 ${u.shade}`;
+    banner.innerHTML = `<div class="u-label">UNIT ${ui + 1}</div><h2>${u.name}</h2><p>${u.desc}</p>`;
+    root.appendChild(banner);
+
+    const path = document.createElement("div");
+    path.className = "path";
+    u.lessons.forEach(l => {
+      path.appendChild(makeNode({
+        id: l.id, icon: l.icon, title: l.title,
+        color: u.color, shade: u.shade,
+        offset: Math.round(Math.sin(globalIdx * 1.9) * 80),
+      }, firstAvailableSeen ? null : (avail) => { if (avail) firstAvailableSeen = true; }));
+      globalIdx++;
+    });
+    root.appendChild(path);
+  });
+
+  const bossBanner = document.createElement("div");
+  bossBanner.className = "unit-banner";
+  bossBanner.style.background = BOSS.color;
+  bossBanner.style.boxShadow = `0 4px 0 ${BOSS.shade}`;
+  bossBanner.innerHTML = `<div class="u-label">FINAL</div><h2>👑 보스전</h2><p>모든 레벨을 깨면 열려요 — 전 범위 랜덤 ${BOSS.count}문제!</p>`;
+  root.appendChild(bossBanner);
+  const bossPath = document.createElement("div");
+  bossPath.className = "path";
+  bossPath.appendChild(makeNode({ id: "boss", icon: BOSS.icon, title: BOSS.title, color: BOSS.color, shade: BOSS.shade, offset: 0, boss: true }, null));
+  root.appendChild(bossPath);
+}
+
+function makeNode(cfg, markAvail) {
+  const wrap = document.createElement("div");
+  wrap.className = "node-wrap";
+  wrap.style.transform = `translateX(${cfg.offset}px)`;
+
+  const stars = state.levels[cfg.id] || 0;
+  const unlocked = isUnlocked(cfg.id);
+  const available = unlocked && stars === 0;
+  if (markAvail) markAvail(available);
+
+  const btn = document.createElement("button");
+  btn.className = "node" + (cfg.boss ? " boss" : "") + (unlocked ? "" : " locked");
+  btn.style.background = cfg.color;
+  btn.style.boxShadow = unlocked ? `0 6px 0 ${cfg.shade}` : "";
+  btn.textContent = unlocked ? cfg.icon : "🔒";
+  if (available) {
+    const tip = document.createElement("span");
+    tip.className = "start-tip";
+    tip.textContent = "시작!";
+    btn.appendChild(tip);
+  }
+  btn.addEventListener("click", () => {
+    if (!unlocked) { sfx("bad"); return; }
+    startLesson(cfg.id);
+  });
+
+  const title = document.createElement("div");
+  title.className = "node-title";
+  title.textContent = cfg.title;
+  const starEl = document.createElement("div");
+  starEl.className = "node-stars";
+  starEl.textContent = stars > 0 ? "⭐".repeat(stars) : "";
+
+  wrap.append(btn, title, starEl);
+  return wrap;
+}
+
+/* ════════ 레슨 진행 ════════ */
+let run = null; // { lessonId, queue, total, solved, hearts, mistakes, answered, picked }
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startLesson(id) {
+  let questions;
+  if (id === "boss") {
+    questions = shuffle(ALL_QUESTIONS).slice(0, BOSS.count);
+  } else {
+    questions = shuffle(ALL_LESSONS[lessonIndex(id)].questions);
+  }
+  run = {
+    lessonId: id,
+    queue: questions.slice(),
+    total: questions.length,
+    solved: 0,
+    hearts: HEARTS_MAX,
+    mistakes: 0,
+    answered: false,
+    picked: null,
+  };
+  show("#lesson");
+  nextQuestion();
+}
+
+function updateLessonHud() {
+  $("#progress-fill").style.width = (run.solved / run.total * 100) + "%";
+  $("#hearts").textContent = "❤️ " + run.hearts;
+}
+
+function nextQuestion() {
+  if (run.solved >= run.total) return finishLesson(true);
+  run.current = run.queue[0];
+  run.answered = false;
+  run.picked = null;
+  updateLessonHud();
+
+  const q = run.current;
+  const kinds = { mc: "알맞은 것을 고르세요", ox: "맞으면 O, 틀리면 X!", blank: "빈칸에 들어갈 말은?" };
+  $("#q-kind").textContent = kinds[q.t];
+  $("#q-text").innerHTML = q.t === "blank"
+    ? escapeHtml(q.q).replace("___", '<span class="blank">&nbsp;?&nbsp;</span>')
+    : escapeHtml(q.q);
+
+  const box = $("#choices");
+  box.innerHTML = "";
+  box.className = "choices" + (q.t === "ox" ? " ox" : "");
+
+  if (q.t === "ox") {
+    [["O", "맞아요", true], ["X", "아니에요", false]].forEach(([label, sub, val]) => {
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.innerHTML = `${label}<small>${sub}</small>`;
+      b.dataset.val = val;
+      b.addEventListener("click", () => pick(b, val));
+      box.appendChild(b);
+    });
+  } else {
+    shuffle(q.c.map((text, i) => ({ text, correct: i === q.a }))).forEach(item => {
+      const b = document.createElement("button");
+      b.className = "choice";
+      b.textContent = item.text;
+      b.addEventListener("click", () => pick(b, item.correct));
+      box.appendChild(b);
+    });
+  }
+
+  const bar = $("#foot-bar");
+  bar.className = "foot-bar";
+  $("#foot-headline").textContent = "";
+  $("#foot-why").textContent = "";
+  const check = $("#check-btn");
+  check.textContent = "확인";
+  check.disabled = true;
+  check.className = "btn";
+}
+
+function pick(btn, value) {
+  if (run.answered) return;
+  document.querySelectorAll(".choice").forEach(c => c.classList.remove("selected"));
+  btn.classList.add("selected");
+  run.picked = { btn, value };
+  $("#check-btn").disabled = false;
+}
+
+function checkAnswer() {
+  const q = run.current;
+  const correct = q.t === "ox" ? run.picked.value === q.a : run.picked.value === true;
+  run.answered = true;
+  document.querySelectorAll(".choice").forEach(c => (c.disabled = true));
+
+  const bar = $("#foot-bar");
+  const check = $("#check-btn");
+  run.queue.shift();
+
+  if (correct) {
+    sfx("ok");
+    run.solved++;
+    run.combo = (run.combo || 0) + 1;
+    run.picked.btn.classList.remove("selected");
+    run.picked.btn.classList.add("correct");
+    bar.className = "foot-bar ok";
+    $("#foot-headline").textContent = run.combo >= 3 ? `정답! 🔥 ${run.combo}연속!` : ["정답! 🎉", "좋아요! 👍", "완벽해요! ✨"][Math.floor(Math.random() * 3)];
+    $("#foot-why").textContent = q.why || "";
+  } else {
+    sfx("bad");
+    run.combo = 0;
+    run.hearts--;
+    run.mistakes++;
+    run.picked.btn.classList.remove("selected");
+    run.picked.btn.classList.add("wrong");
+    // 정답 보기 하이라이트
+    if (q.t === "ox") {
+      document.querySelectorAll(".choice").forEach(c => { if ((c.dataset.val === "true") === q.a) c.classList.add("correct"); });
+    } else {
+      const answerText = q.c[q.a];
+      document.querySelectorAll(".choice").forEach(c => { if (c.textContent === answerText) c.classList.add("correct"); });
+    }
+    bar.className = "foot-bar bad";
+    $("#foot-headline").textContent = "아쉬워요! 정답을 확인하세요";
+    $("#foot-why").textContent = q.why || "";
+    run.queue.push(q); // 틀린 문제는 뒤에서 다시 만나요
+  }
+  updateLessonHud();
+
+  if (!correct && run.hearts <= 0) {
+    check.textContent = "결과 보기";
+    check.className = "btn red";
+    check.onclickOverride = () => finishLesson(false);
+  } else {
+    check.textContent = "계속하기";
+    check.onclickOverride = null;
+  }
+  check.disabled = false;
+}
+
+function finishLesson(cleared) {
+  const id = run.lessonId;
+  show("#result");
+  const retryBtn = $("#res-retry");
+  const contBtn = $("#res-continue");
+
+  if (cleared) {
+    sfx("win");
+    const stars = Math.max(1, run.hearts);
+    const prev = state.levels[id] || 0;
+    if (stars > prev) state.levels[id] = stars;
+
+    const bonus = run.mistakes === 0 ? 20 : 0;
+    const earned = run.total * 10 + bonus;
+    state.xp += earned;
+
+    // 스트릭 갱신
+    const today = new Date(); today.setHours(0,0,0,0);
+    const todayKey = today.toISOString().slice(0, 10);
+    if (state.lastDay !== todayKey) {
+      const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+      state.streak = state.lastDay === yesterday.toISOString().slice(0, 10) ? state.streak + 1 : 1;
+      state.lastDay = todayKey;
+    }
+    save();
+
+    $("#res-emoji").textContent = id === "boss" ? "👑" : run.mistakes === 0 ? "🏆" : "🎉";
+    $("#res-title").textContent = id === "boss" ? "보스전 클리어! 클로드 마스터!" : "레벨 클리어!";
+    $("#res-sub").textContent = run.mistakes === 0
+      ? "실수 없이 완벽하게 통과했어요! 퍼펙트 보너스 +20 XP"
+      : `${run.total}문제 완료 · 실수 ${run.mistakes}번 — 틀린 문제는 다시 만나 복습했어요.`;
+    $("#res-stars").innerHTML = "⭐".repeat(stars) + '<span class="dim">' + "⭐".repeat(3 - stars) + "</span>";
+    $("#res-xp").textContent = "+" + earned;
+    $("#res-streak").textContent = state.streak + "일";
+    retryBtn.style.display = stars < 3 ? "" : "none";
+    retryBtn.textContent = "별 3개 도전 🔁";
+    contBtn.textContent = "계속하기";
+    if (run.mistakes === 0 || id === "boss") confetti();
+  } else {
+    $("#res-emoji").textContent = "💔";
+    $("#res-title").textContent = "하트가 다 떨어졌어요";
+    $("#res-sub").textContent = "괜찮아요! 틀린 문제 설명을 읽었으니 다음 도전은 더 쉬울 거예요.";
+    $("#res-stars").innerHTML = '<span class="dim">⭐⭐⭐</span>';
+    $("#res-xp").textContent = "+0";
+    $("#res-streak").textContent = state.streak + "일";
+    retryBtn.style.display = "";
+    retryBtn.textContent = "다시 도전 🔁";
+    contBtn.textContent = "지도로 돌아가기";
+  }
+
+  retryBtn.onclick = () => startLesson(id);
+  contBtn.onclick = () => { renderMap(); show("#map"); };
+}
+
+/* ════════ 컨페티 ════════ */
+function confetti() {
+  const emojis = ["🍿", "🎉", "⭐", "✨", "🧡"];
+  for (let i = 0; i < 36; i++) {
+    const s = document.createElement("span");
+    s.className = "confetti";
+    s.textContent = emojis[i % emojis.length];
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.animationDuration = 2.2 + Math.random() * 2 + "s";
+    s.style.animationDelay = Math.random() * 0.8 + "s";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 5200);
+  }
+}
+
+/* ════════ 유틸 & 이벤트 ════════ */
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+}
+
+$("#check-btn").addEventListener("click", function () {
+  if (this.onclickOverride) return this.onclickOverride();
+  if (!run.answered) checkAnswer();
+  else nextQuestion();
+});
+$("#quit-btn").addEventListener("click", () => {
+  if (confirm("레슨을 그만둘까요? 진행 중인 내용은 저장되지 않아요.")) { renderMap(); show("#map"); }
+});
+$("#reset-btn").addEventListener("click", () => {
+  if (confirm("모든 진행 상황(XP, 별, 스트릭)을 초기화할까요?")) {
+    state = freshState(); save(); renderMap();
+  }
+});
+
+renderMap();
+</script>
+</body>
+</html>
