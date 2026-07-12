@@ -12,6 +12,16 @@ python3 -m http.server 8000
 
 브라우저에서 `index.html`을 직접 열어도(file://) 동작합니다.
 
+### Vercel 배포
+
+빌드 설정이 필요 없는 정적 사이트입니다. 저장소 루트의 `vercel.json`이 `/` → `/n8n-academy/` 리다이렉트를 처리합니다.
+
+1. [vercel.com/new](https://vercel.com/new)에서 `team-datapopcorn/datapopcorn-assets` 저장소 Import
+2. Framework Preset: **Other**, Build Command·Output Directory 비워두기 (기본값)
+3. Deploy — 이후 `main` 브랜치에 푸시할 때마다 자동 재배포
+
+또는 CLI: `vercel --prod` (저장소 루트에서)
+
 ## 기능
 
 - **학습 경로**: 5개 유닛 × 10개 레슨 (기초 개념 → 트리거 → 핵심 노드 → 표현식 → 에러 처리/실전 팁)
