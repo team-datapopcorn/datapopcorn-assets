@@ -8,6 +8,8 @@ This repository contains company assets for DataPopcorn.
 - `DataPopcorn Logo 7.png`: Official company logo (Version 7).
 
 ## Collections
+- `n8n-academy/`: Gamified n8n learning web app (Duolingo-inspired, unofficial; single-file, Korean).
+- `n8n-cheatsheet/`: Printable n8n cheat sheet and flashcards.
 - `third-party/anthropic/`: Anthropic hand-drawn-style asset archive for internal reference and reuse.
 
 Each reusable collection should include:

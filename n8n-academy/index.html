@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>n8n Academy · 게임처럼 배우는 n8n</title>
+<meta name="description" content="게임으로 배우는 n8n. 레슨을 깨고 XP를 모으고 스트릭을 이어가세요. 데이터팝콘 제작.">
+<meta property="og:title" content="n8n Academy · 게임처럼 배우는 n8n">
+<meta property="og:description" content="퀴즈 · 빈칸 채우기 · 짝 맞추기 · 워크플로우 조립으로 배우는 n8n. 하트를 지키고 XP를 모아 n8n 마스터가 되어보세요!">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#ff6d5a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍿</text></svg>">
+<style>
+/* ═══ Design Tokens ══════════════════════════════════════ */
+:root {
+  --ink:      #3c3c3c;
+  --mute:     #777;
+  --faint:    #afafaf;
+  --line:     #e5e5e5;
+  --bg:       #fff;
+  --panel:    #f7f7f7;
+  --accent:   #ff6d5a;   /* DataPopcorn coral */
+  --accent-d: #e05545;
+  --green:    #58cc02;   /* correct */
+  --green-d:  #46a302;
+  --green-bg: #d7ffb8;
+  --red:      #ff4b4b;   /* wrong */
+  --red-d:    #ea2b2b;
+  --red-bg:   #ffdfe0;
+  --blue:     #1cb0f6;
+  --blue-d:   #1899d6;
+  --gold:     #ffc800;
+  --gold-d:   #e6a800;
+  --purple:   #ce82ff;
+  --radius:   16px;
+  --font: -apple-system, "Pretendard Variable", Pretendard, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; }
+body {
+  font-family: var(--font); color: var(--ink); background: var(--bg);
+  line-height: 1.5; min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font-family: var(--font); cursor: pointer; }
+code {
+  font-family: var(--mono); font-size: .92em;
+  background: #f0f0ee; color: var(--accent-d);
+  padding: .08em .4em; border-radius: 6px; white-space: nowrap;
+}
+
+/* ═══ 3D Game Buttons (Duolingo style) ═══════════════════ */
+.gbtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  font-weight: 800; font-size: 1rem; letter-spacing: .02em;
+  border: none; border-radius: 14px;
+  padding: .8rem 1.8rem;
+  color: #fff; background: var(--green);
+  box-shadow: 0 4px 0 var(--green-d);
+  transition: filter .12s, transform .05s, box-shadow .05s;
+  user-select: none; white-space: nowrap;
+}
+.gbtn:hover { filter: brightness(1.06); }
+.gbtn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--green-d); }
+.gbtn:disabled {
+  background: #e5e5e5; color: #afafaf; box-shadow: 0 4px 0 #d0d0d0;
+  cursor: default; filter: none;
+}
+.gbtn:disabled:active { transform: none; box-shadow: 0 4px 0 #d0d0d0; }
+.gbtn-accent { background: var(--accent); box-shadow: 0 4px 0 var(--accent-d); }
+.gbtn-accent:active { box-shadow: 0 0 0 var(--accent-d); }
+.gbtn-blue { background: var(--blue); box-shadow: 0 4px 0 var(--blue-d); }
+.gbtn-blue:active { box-shadow: 0 0 0 var(--blue-d); }
+.gbtn-red { background: var(--red); box-shadow: 0 4px 0 var(--red-d); }
+.gbtn-red:active { box-shadow: 0 0 0 var(--red-d); }
+.gbtn-ghost {
+  background: #fff; color: var(--mute);
+  border: 2px solid var(--line); box-shadow: 0 3px 0 var(--line);
+}
+.gbtn-ghost:active { box-shadow: 0 0 0 var(--line); transform: translateY(3px); }
+
+/* ═══ Top Bar ════════════════════════════════════════════ */
+#topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(8px);
+  border-bottom: 2px solid var(--line);
+}
+.topbar-inner {
+  max-width: 640px; margin: 0 auto; padding: .55rem 1rem;
+  display: flex; align-items: center; justify-content: space-between; gap: .6rem;
+}
+.brand { display: flex; align-items: center; gap: .45rem; font-weight: 900; font-size: 1.1rem; letter-spacing: -.02em; }
+.brand .n8 { color: var(--accent); }
+.brand .pop { font-size: 1.3rem; }
+.stats { display: flex; align-items: center; gap: .8rem; font-weight: 800; font-size: .95rem; }
+.stat { display: flex; align-items: center; gap: .25rem; }
+.stat-streak { color: #ff9600; }
+.stat-xp { color: var(--gold-d); }
+.stat .num { font-variant-numeric: tabular-nums; }
+#sound-btn {
+  border: none; background: transparent; font-size: 1.15rem;
+  padding: .15rem .3rem; border-radius: 8px; line-height: 1;
+}
+#sound-btn:hover { background: var(--panel); }
+
+/* ═══ Views ══════════════════════════════════════════════ */
+.view { display: none; }
+.view.active { display: block; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 1.2rem 1rem 4rem; }
+
+/* ═══ Hero (path view) ═══════════════════════════════════ */
+.hero {
+  display: flex; gap: 1rem; align-items: center;
+  background: linear-gradient(135deg, #fff4f2, #fff9e8);
+  border: 2px solid #ffe0da; border-radius: 20px;
+  padding: 1.1rem 1.2rem; margin-bottom: 1.4rem;
+}
+.hero .mascot { font-size: 3rem; filter: drop-shadow(0 3px 3px rgba(0,0,0,.12)); animation: bob 3s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.hero h1 { font-size: 1.25rem; font-weight: 900; letter-spacing: -.02em; }
+.hero p { font-size: .88rem; color: var(--mute); margin-top: .15rem; }
+.level-chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  margin-top: .5rem; font-size: .78rem; font-weight: 800;
+  background: #fff; border: 2px solid var(--line); border-radius: 99px;
+  padding: .18rem .7rem; color: var(--accent-d);
+}
+.level-bar { width: 90px; height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.level-bar i { display: block; height: 100%; background: var(--gold); border-radius: 99px; transition: width .4s; }
+
+/* ═══ Unit & Path ════════════════════════════════════════ */
+.unit { margin-bottom: 2rem; }
+.unit-head {
+  border-radius: var(--radius); padding: .9rem 1.1rem; color: #fff;
+  display: flex; justify-content: space-between; align-items: center; gap: .8rem;
+  box-shadow: 0 4px 0 rgba(0,0,0,.18);
+  margin-bottom: 1.4rem;
+}
+.unit-head h2 { font-size: 1.02rem; font-weight: 900; letter-spacing: -.01em; }
+.unit-head p { font-size: .8rem; opacity: .92; margin-top: .1rem; }
+.unit-head .unit-emoji { font-size: 1.9rem; }
+.path { display: flex; flex-direction: column; align-items: center; gap: .55rem; }
+.path-node { text-align: center; position: relative; }
+.lesson-btn {
+  width: 78px; height: 74px; border: none; border-radius: 50%;
+  font-size: 1.9rem; position: relative;
+  background: var(--c, var(--accent));
+  box-shadow: 0 7px 0 var(--cd, var(--accent-d));
+  transition: transform .06s, box-shadow .06s, filter .12s;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.lesson-btn:hover { filter: brightness(1.07); }
+.lesson-btn:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--cd, var(--accent-d)); }
+.lesson-btn.locked {
+  background: #e5e5e5; box-shadow: 0 7px 0 #cfcfcf;
+  filter: grayscale(1); cursor: default;
+}
+.lesson-btn.locked:active { transform: none; box-shadow: 0 7px 0 #cfcfcf; }
+.lesson-btn.done { background: var(--gold); box-shadow: 0 7px 0 var(--gold-d); }
+.lesson-btn .ring {
+  position: absolute; inset: -9px; border-radius: 50%;
+  border: 4px solid transparent;
+}
+.lesson-btn.current .ring { border-color: color-mix(in srgb, var(--c) 45%, transparent); animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.07); opacity: .55; } }
+.start-tag {
+  position: absolute; top: -34px; left: 50%; transform: translateX(-50%);
+  background: #fff; border: 2px solid var(--line); border-radius: 10px;
+  font-size: .72rem; font-weight: 900; color: var(--accent);
+  padding: .18rem .6rem; white-space: nowrap; letter-spacing: .08em;
+  animation: floaty 1.6s ease-in-out infinite; z-index: 2;
+}
+.start-tag::after {
+  content: ""; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%) rotate(45deg);
+  width: 10px; height: 10px; background: #fff;
+  border-right: 2px solid var(--line); border-bottom: 2px solid var(--line);
+}
+@keyframes floaty { 0%,100% { transform: translate(-50%,0); } 50% { transform: translate(-50%,-5px); } }
+.lesson-label { font-size: .8rem; font-weight: 700; color: var(--mute); margin-top: .45rem; }
+.lesson-stars { font-size: .72rem; letter-spacing: .05em; margin-top: .05rem; min-height: 1em; }
+.path-link { width: 8px; height: 22px; border-radius: 99px; background: var(--line); }
+.path-link.filled { background: var(--gold); }
+
+/* ═══ Lesson View ════════════════════════════════════════ */
+.lesson-top {
+  display: flex; align-items: center; gap: .9rem;
+  padding: .9rem 0 1.2rem;
+}
+#quit-btn {
+  border: none; background: transparent; font-size: 1.3rem; color: var(--faint);
+  padding: .2rem .4rem; border-radius: 8px; line-height: 1;
+}
+#quit-btn:hover { background: var(--panel); color: var(--mute); }
+.pbar { flex: 1; height: 16px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.pbar i {
+  display: block; height: 100%; width: 0%;
+  background: var(--green); border-radius: 99px;
+  transition: width .5s cubic-bezier(.22,1.2,.36,1);
+  position: relative;
+}
+.pbar i::after {
+  content: ""; position: absolute; top: 3px; left: 8px; right: 8px; height: 4px;
+  background: rgba(255,255,255,.35); border-radius: 99px;
+}
+.hearts { font-weight: 900; font-size: 1rem; color: var(--red); display: flex; align-items: center; gap: .2rem; }
+.hearts.low { animation: heartbeat .9s ease-in-out infinite; }
+@keyframes heartbeat { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+.ex-kind { font-size: .8rem; font-weight: 900; color: var(--blue-d); letter-spacing: .06em; text-transform: uppercase; margin-bottom: .4rem; }
+.ex-q { font-size: 1.25rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: 1.1rem; }
+.ex-q code { font-size: .85em; }
+.ex-img {
+  width: 88px; height: 88px; border-radius: 20px;
+  border: 2px solid var(--line); background: #fff;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1rem;
+}
+.ex-img img { width: 54px; height: 54px; }
+
+/* choices (mc / tf) */
+.choices { display: grid; gap: .7rem; }
+.choice {
+  text-align: left; font-size: 1rem; font-weight: 700; color: var(--ink);
+  background: #fff; border: 2px solid var(--line); border-radius: 14px;
+  box-shadow: 0 3px 0 var(--line);
+  padding: .85rem 1rem;
+  display: flex; align-items: center; gap: .75rem;
+  transition: background .12s, border-color .12s, transform .05s;
+}
+.choice:hover { background: #fafafa; }
+.choice:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line); }
+.choice .key {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px;
+  border: 2px solid var(--line); color: var(--faint);
+  font-size: .8rem; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.choice.sel { border-color: var(--blue); background: #ddf4ff; box-shadow: 0 3px 0 var(--blue); color: var(--blue-d); }
+.choice.sel .key { border-color: var(--blue); color: var(--blue-d); }
+.choice.correct { border-color: var(--green); background: var(--green-bg); box-shadow: 0 3px 0 var(--green); color: var(--green-d); }
+.choice.wrong { border-color: var(--red); background: var(--red-bg); box-shadow: 0 3px 0 var(--red); color: var(--red-d); }
+.choice:disabled { cursor: default; }
+.choices.tf { grid-template-columns: 1fr 1fr; }
+.choices.tf .choice { justify-content: center; font-size: 1.5rem; padding: 1.2rem; }
+
+/* blank */
+.blank-sentence {
+  font-size: 1.15rem; font-weight: 700; line-height: 2.2;
+  background: var(--panel); border-radius: var(--radius);
+  padding: 1rem 1.2rem; margin-bottom: 1.2rem;
+}
+.blank-slot {
+  display: inline-block; min-width: 96px; text-align: center;
+  border-bottom: 3px solid var(--faint);
+  font-family: var(--mono); font-weight: 800; color: var(--blue-d);
+  padding: 0 .4rem; margin: 0 .15rem; line-height: 1.6;
+  vertical-align: baseline;
+}
+.blank-slot.filled { border-bottom-color: var(--blue); cursor: pointer; }
+
+/* token bank (blank / order) */
+.bank { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
+.token {
+  font-family: var(--mono); font-size: .95rem; font-weight: 700; color: var(--ink);
+  background: #fff; border: 2px solid var(--line); border-radius: 12px;
+  box-shadow: 0 3px 0 var(--line);
+  padding: .5rem .9rem;
+  transition: transform .05s, opacity .15s;
+}
+.token:hover { background: #fafafa; }
+.token:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line); }
+.token.used { opacity: 0; pointer-events: none; }
+.token.ko-token { font-family: var(--font); }
+
+/* order */
+.order-area {
+  min-height: 64px; border-top: 2px solid var(--line); border-bottom: 2px solid var(--line);
+  display: flex; flex-wrap: wrap; gap: .55rem; align-items: center;
+  padding: .8rem .2rem; margin-bottom: 1.3rem;
+}
+.order-area .placeholder { color: var(--faint); font-size: .9rem; font-weight: 600; }
+.order-area .token { background: #ddf4ff; border-color: var(--blue); box-shadow: 0 3px 0 var(--blue); color: var(--blue-d); }
+.order-arrow { color: var(--faint); font-weight: 900; }
+
+/* match */
+.match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.match-card {
+  font-size: .92rem; font-weight: 700; text-align: center; color: var(--ink);
+  background: #fff; border: 2px solid var(--line); border-radius: 14px;
+  box-shadow: 0 3px 0 var(--line);
+  padding: .8rem .7rem; min-height: 58px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .12s, border-color .12s, opacity .3s;
+}
+.match-card:active { transform: translateY(3px); box-shadow: 0 0 0 var(--line); }
+.match-card.sel { border-color: var(--blue); background: #ddf4ff; box-shadow: 0 3px 0 var(--blue); color: var(--blue-d); }
+.match-card.ok {
+  border-color: var(--green); background: var(--green-bg); box-shadow: 0 3px 0 var(--green);
+  color: var(--green-d); opacity: .55; pointer-events: none;
+}
+.match-card.bad { animation: shake .4s; border-color: var(--red); background: var(--red-bg); box-shadow: 0 3px 0 var(--red); }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* tip card (lesson intro) */
+.tip-card {
+  background: #fffbea; border: 2px solid #ffe58f; border-radius: var(--radius);
+  padding: 1rem 1.2rem; margin-bottom: 1.2rem;
+}
+.tip-card h3 { font-size: .95rem; font-weight: 900; color: #ad6800; margin-bottom: .4rem; }
+.tip-card p { font-size: .92rem; color: #6b5900; }
+.tip-card code { background: #fff3bf; color: #ad6800; }
+
+/* ═══ Footer / feedback bar ══════════════════════════════ */
+#lesson-footer {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  border-top: 2px solid var(--line); background: #fff;
+  transition: background .2s;
+}
+#lesson-footer .foot-inner {
+  max-width: 640px; margin: 0 auto; padding: 1rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  min-height: 88px;
+}
+#lesson-footer.good { background: var(--green-bg); border-top-color: #b8f28b; }
+#lesson-footer.bad { background: var(--red-bg); border-top-color: #ffb8b8; }
+.feedback { display: flex; align-items: flex-start; gap: .7rem; min-width: 0; }
+.feedback .fb-icon {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 50%; background: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+}
+.feedback .fb-title { font-size: 1.05rem; font-weight: 900; }
+.feedback .fb-body { font-size: .85rem; margin-top: .1rem; }
+#lesson-footer.good .fb-title, #lesson-footer.good .fb-body { color: var(--green-d); }
+#lesson-footer.bad .fb-title, #lesson-footer.bad .fb-body { color: var(--red-d); }
+.fb-body code { background: rgba(255,255,255,.7); }
+
+/* ═══ Result / fail view ═════════════════════════════════ */
+.result { text-align: center; padding-top: 3rem; }
+.result .big { font-size: 4.5rem; animation: pop-in .5s cubic-bezier(.22,1.6,.36,1); }
+@keyframes pop-in { from { transform: scale(0); } to { transform: scale(1); } }
+.result h2 { font-size: 1.5rem; font-weight: 900; margin: .6rem 0 .3rem; letter-spacing: -.02em; }
+.result .sub { color: var(--mute); font-size: .95rem; margin-bottom: 1.4rem; }
+.reward-row { display: flex; justify-content: center; gap: .8rem; margin-bottom: 1.8rem; flex-wrap: wrap; }
+.reward {
+  border-radius: 14px; padding: .7rem 1.1rem; min-width: 110px;
+  border: 2px solid; font-weight: 900;
+}
+.reward .r-label { font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: .15rem; }
+.reward .r-val { font-size: 1.3rem; }
+.reward-xp { border-color: var(--gold); color: var(--gold-d); background: #fff9e0; }
+.reward-streak { border-color: #ffb020; color: #d97706; background: #fff4e0; }
+.reward-acc { border-color: var(--blue); color: var(--blue-d); background: #eaf7ff; }
+.stars-big { font-size: 2.2rem; letter-spacing: .1em; margin-bottom: .8rem; }
+.result .btn-row { display: flex; justify-content: center; gap: .8rem; flex-wrap: wrap; }
+
+/* confetti */
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 90; }
+
+/* xp float */
+.xp-float {
+  position: fixed; z-index: 95; font-weight: 900; color: var(--gold-d);
+  font-size: 1.1rem; pointer-events: none;
+  animation: xp-rise 1s ease-out forwards;
+}
+@keyframes xp-rise { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-46px); } }
+
+/* footer credit */
+.credit { text-align: center; font-size: .78rem; color: var(--faint); padding: 2rem 0 1rem; }
+.credit a { color: var(--accent-d); font-weight: 700; text-decoration: none; }
+.credit a:hover { text-decoration: underline; }
+
+@media (max-width: 480px) {
+  .ex-q { font-size: 1.1rem; }
+  .choices.tf .choice { font-size: 1.2rem; }
+  .stats { gap: .55rem; font-size: .88rem; }
+  .reward { min-width: 96px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ TOP BAR ═══ -->
+<div id="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="pop">🍿</span> n<span class="n8">8</span>n Academy</div>
+    <div class="stats">
+      <span class="stat stat-streak" title="스트릭 (연속 학습일)">🔥 <span class="num" id="stat-streak">0</span></span>
+      <span class="stat stat-xp" title="누적 XP">⚡ <span class="num" id="stat-xp">0</span></span>
+      <button id="sound-btn" title="효과음 켜기/끄기">🔊</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PATH VIEW ═══ -->
+<div class="view active" id="view-path">
+  <div class="wrap">
+    <div class="hero">
+      <div class="mascot">🍿</div>
+      <div>
+        <h1 id="hero-title">게임처럼 배우는 n8n</h1>
+        <p id="hero-sub">레슨을 깨고 XP를 모아 자동화 마스터가 되어보세요!</p>
+        <span class="level-chip">
+          <span id="level-name">Lv.1 자동화 새싹</span>
+          <span class="level-bar"><i id="level-fill"></i></span>
+        </span>
+      </div>
+    </div>
+    <div id="units"></div>
+    <div class="credit">
+      만든 곳: <a href="https://www.youtube.com/@datapopcorn" target="_blank" rel="noopener">데이터팝콘 🍿</a>
+      &nbsp;·&nbsp; 함께 보기: <a href="../n8n-cheatsheet/index.html">n8n 치트시트</a>
+      &nbsp;·&nbsp; 진행 상황은 이 브라우저에 저장돼요
+      <br>n8n은 n8n GmbH의 상표입니다. 본 서비스는 n8n GmbH와 무관한 비공식 학습 자료이며, 아이콘은 자체 제작한 그림이에요.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LESSON VIEW ═══ -->
+<div class="view" id="view-lesson">
+  <div class="wrap" style="padding-bottom: 8.5rem;">
+    <div class="lesson-top">
+      <button id="quit-btn" title="레슨 나가기">✕</button>
+      <div class="pbar"><i id="pbar-fill"></i></div>
+      <div class="hearts" id="hearts">❤️ 5</div>
+    </div>
+    <div id="ex-area"></div>
+  </div>
+  <div id="lesson-footer">
+    <div class="foot-inner">
+      <div class="feedback" id="feedback"></div>
+      <button class="gbtn" id="check-btn" disabled>확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RESULT VIEW ═══ -->
+<div class="view" id="view-result">
+  <div class="wrap">
+    <div class="result" id="result-box"></div>
+  </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+"use strict";
+/* ════════════════════════════════════════════════════════
+   n8n Academy — 듀오링고식 게임 학습 앱 (단일 파일, 오프라인 동작)
+   콘텐츠 출처: 데이터팝콘 n8n 치트시트
+   ════════════════════════════════════════════════════════ */
+
+/* ─── 커리큘럼 데이터 ───────────────────────────────────── */
+/* 문제 유형:
+   mc    객관식        {t,q,img?,opts[],a(정답 idx),why}
+   tf    O/X           {t,q,a(bool),why}
+   blank 빈칸 채우기    {t,q('___' 포함),tokens[],a(정답 토큰),why}
+   order 순서 배열      {t,q,seq[](정답 순서),why}
+   match 짝 맞추기      {t,q,pairs[[좌,우],...]}                  */
+const UNITS = [
+{
+  id: "u1", emoji: "🐣", color: "#ff6d5a", dark: "#d94f3e",
+  title: "유닛 1 · n8n 첫걸음",
+  desc: "n8n이 뭔지, 핵심 개념부터 차근차근",
+  lessons: [
+  {
+    id: "l1", icon: "🥚", title: "n8n이 뭐야?",
+    tip: { title: "💡 시작하기 전에", body: "n8n은 <b>노드(Node)</b>를 레고처럼 연결해 반복 작업을 자동화하는 도구예요. 노드를 이은 것이 <b>워크플로우(Workflow)</b>, 워크플로우를 시작시키는 특수 노드가 <b>트리거(Trigger)</b>랍니다." },
+    ex: [
+      { t: "mc", q: "n8n은 어떤 도구일까요?",
+        opts: ["워크플로우 자동화 도구", "동영상 편집 프로그램", "데이터베이스 서버", "게임 엔진"], a: 0,
+        why: "n8n은 노드를 연결해 반복 작업을 자동화하는 워크플로우 자동화 도구예요." },
+      { t: "mc", q: "n8n에서 ‘하나의 작업 블록’을 부르는 이름은?",
+        opts: ["노드 (Node)", "셀 (Cell)", "위젯 (Widget)", "블록체인"], a: 0,
+        why: "트리거·앱·로직 등 모든 작업 블록을 노드(Node)라고 불러요." },
+      { t: "tf", q: "워크플로우(Workflow)는 노드들을 연결한 자동화의 단위다.", a: true,
+        why: "맞아요! 노드들의 연결 흐름 = 워크플로우, 자동화의 기본 단위예요." },
+      { t: "blank", q: "워크플로우를 시작시키는 특수한 노드를 ___ 라고 해요.",
+        tokens: ["트리거", "익스큐션", "크레덴셜", "아이템"], a: "트리거", ko: true,
+        why: "모든 워크플로우는 트리거(Trigger) 노드에서 시작돼요." },
+      { t: "mc", q: "설치 없이 n8n을 가장 빠르게 시작하는 방법은?",
+        opts: ["n8n Cloud 가입 (n8n.io)", "쿠버네티스 클러스터 구축", "소스코드 직접 컴파일", "자격증 시험 응시"], a: 0,
+        why: "n8n.io에서 Cloud에 가입하면 설치 없이 바로 워크플로우를 만들 수 있어요." },
+      { t: "order", q: "Docker로 n8n을 실행하는 순서를 맞춰보세요!",
+        seq: ["Docker 설치", "docker run 명령 실행", "localhost:5678 접속", "워크플로우 만들기"], ko: true,
+        why: "docker run -p 5678:5678 n8nio/n8n → 브라우저에서 localhost:5678 접속!" },
+      { t: "mc", q: "n8n을 로컬에서 실행하면 접속하는 기본 포트는?",
+        opts: ["5678", "8080", "3000", "80"], a: 0,
+        why: "기본 포트는 5678이에요. localhost:5678로 접속해요. (5-6-7-8, 외우기 쉽죠?)" }
+    ]
+  },
+  {
+    id: "l2", icon: "🐥", title: "데이터의 흐름",
+    tip: { title: "💡 데이터는 어떻게 흐를까?", body: "노드 사이를 흐르는 데이터 한 줄을 <b>아이템(Item)</b>이라고 해요. 표현식에서는 <code>$json</code>으로 현재 아이템에 접근해요. 워크플로우가 한 번 실행된 기록은 <b>익스큐션(Execution)</b>!" },
+    ex: [
+      { t: "mc", q: "노드 사이를 흐르는 ‘데이터 한 줄’을 뭐라고 부를까요?",
+        opts: ["아이템 (Item)", "패킷 (Packet)", "청크 (Chunk)", "레코드북"], a: 0,
+        why: "노드 사이를 흐르는 데이터 한 줄 = 아이템(Item). 표현식에선 $json으로 접근해요." },
+      { t: "blank", q: "표현식에서 현재 아이템의 데이터는 ___ 로 접근해요.",
+        tokens: ["$json", "$item", "$data", "$row"], a: "$json",
+        why: "{{ $json.필드명 }} 형태로 현재 아이템의 필드를 읽어요." },
+      { t: "mc", q: "워크플로우가 ‘한 번 실행된 기록’을 부르는 말은?",
+        opts: ["익스큐션 (Execution)", "세션 (Session)", "커밋 (Commit)", "스냅샷"], a: 0,
+        why: "한 번의 실행 = Execution. 실행 로그가 저장되어 나중에 확인할 수 있어요." },
+      { t: "tf", q: "Credentials(자격 증명)는 워크플로우마다 매번 새로 입력해야 한다.", a: false,
+        why: "한 번 저장하면 여러 워크플로우에서 재사용할 수 있어요. 그게 Credentials의 장점!" },
+      { t: "match", q: "핵심 개념과 설명을 짝지어 보세요!",
+        pairs: [["Workflow", "노드들의 연결 흐름"], ["Node", "하나의 작업 블록"], ["Trigger", "워크플로우를 시작시키는 노드"], ["Item", "노드 사이를 흐르는 데이터 한 줄"], ["Credentials", "외부 서비스 인증 정보"]] },
+      { t: "mc", q: "Slack·Google 같은 외부 서비스의 인증 정보를 저장하는 곳은?",
+        opts: ["Credentials", "Variables", "Sticky Note", "Tags"], a: 0,
+        why: "우측 상단 메뉴 → Credentials → New 에서 등록해요." },
+      { t: "tf", q: "실행(Execution) 로그는 저장되어 나중에 다시 확인할 수 있다.", a: true,
+        why: "실행 목록(Ctrl/⌘+Shift+E)에서 과거 실행 내역과 데이터를 확인할 수 있어요." }
+    ]
+  }]
+},
+{
+  id: "u2", emoji: "⚡", color: "#1cb0f6", dark: "#1899d6",
+  title: "유닛 2 · 트리거 마스터",
+  desc: "워크플로우의 시작점, 트리거 3총사와 크론",
+  lessons: [
+  {
+    id: "l3", icon: "🔔", title: "트리거 3총사",
+    tip: { title: "💡 트리거 3총사", body: "<b>Manual</b>은 버튼으로 직접 실행(테스트용), <b>Schedule</b>은 크론으로 반복 실행, <b>Webhook</b>은 외부 HTTP 요청으로 실행돼요. 워크플로우마다 시작은 늘 트리거!" },
+    ex: [
+      { t: "mc", q: "이 아이콘의 노드는? 버튼을 눌러 직접 실행할 때 써요.", img: "icons/manual-trigger.svg",
+        opts: ["Manual Trigger", "Webhook", "Schedule Trigger", "Error Trigger"], a: 0,
+        why: "Manual Trigger는 버튼으로 직접 실행해요. 테스트·디버깅의 필수템!" },
+      { t: "mc", q: "워크플로우를 처음 만들 때, 테스트하기 가장 좋은 트리거는?",
+        opts: ["Manual Trigger", "Schedule Trigger", "Webhook Trigger", "Error Trigger"], a: 0,
+        why: "먼저 Manual로 만들어 디버깅하고, 완성되면 Schedule/Webhook으로 교체하는 게 프로의 방식!" },
+      { t: "mc", q: "이 아이콘의 노드는? 외부에서 HTTP 요청이 오면 실행돼요.", img: "icons/webhook.svg",
+        opts: ["Webhook Trigger", "Manual Trigger", "Wait", "Chat Trigger"], a: 0,
+        why: "Webhook 트리거는 외부 HTTP 요청으로 실행되고, 고유 URL이 자동 생성돼요." },
+      { t: "tf", q: "Webhook 트리거를 만들면 고유한 URL이 자동으로 생성된다.", a: true,
+        why: "POST /webhook/<uuid> 형태의 고유 URL로 외부 데이터를 받을 수 있어요." },
+      { t: "blank", q: "정해진 시간마다 반복 실행하려면 ___ 트리거를 사용해요.",
+        tokens: ["Schedule", "Manual", "Webhook", "Error"], a: "Schedule",
+        why: "Schedule Trigger는 크론 표현식으로 정해진 시간에 반복 실행돼요." },
+      { t: "match", q: "트리거와 실행 방식을 짝지어 보세요!",
+        pairs: [["Manual Trigger", "버튼으로 직접 실행"], ["Schedule Trigger", "크론으로 반복 실행"], ["Webhook Trigger", "외부 HTTP 요청으로 실행"], ["Error Trigger", "다른 워크플로우 실패 시 실행"]] },
+      { t: "mc", q: "외부 서비스에서 보내는 데이터를 실시간으로 받아 처리하고 싶다면?",
+        opts: ["Webhook 트리거의 URL을 외부 서비스에 등록", "매일 밤 수동으로 실행", "스티키 노트에 메모", "브라우저를 계속 새로고침"], a: 0,
+        why: "Webhook URL을 외부 서비스(폼, 결제, 챗봇 등)에 등록하면 이벤트 즉시 워크플로우가 실행돼요." }
+    ]
+  },
+  {
+    id: "l4", icon: "🕐", title: "크론 정복",
+    tip: { title: "💡 크론 표현식 5칸", body: "크론은 <code>분 시 일 월 요일</code> 5칸이에요. <code>*</code>는 ‘모든 값’. 예: <code>0 9 * * 1-5</code> = 평일 오전 9시. 요일은 0(일)~6(토)!" },
+    ex: [
+      { t: "mc", q: "크론 표현식 `0 9 * * 1-5` 의 의미는?",
+        opts: ["평일 오전 9시", "매일 오후 9시", "9분마다", "주말 오전 9시"], a: 0,
+        why: "분=0, 시=9, 요일=1-5(월~금) → 평일 아침 9시 정각!" },
+      { t: "mc", q: "크론 5개 필드의 올바른 순서는?",
+        opts: ["분 시 일 월 요일", "시 분 일 월 요일", "년 월 일 시 분", "요일 월 일 시 분"], a: 0,
+        why: "왼쪽부터 분(0-59), 시(0-23), 일(1-31), 월(1-12), 요일(0-6)이에요." },
+      { t: "blank", q: "매일 오전 9시 정각에 실행: `___ 9 * * *`",
+        tokens: ["0", "9", "*", "60"], a: "0",
+        why: "첫 칸은 ‘분’. 9시 정각이니 분은 0이에요." },
+      { t: "tf", q: "크론에서 `*` 는 ‘모든 값’을 의미한다.", a: true,
+        why: "* 는 와일드카드예요. 일 칸의 * 는 ‘매일’, 월 칸의 * 는 ‘매월’!" },
+      { t: "mc", q: "`*/10 * * * *` 는 언제 실행될까요?",
+        opts: ["10분마다", "10시에 한 번", "매월 10일", "10초마다"], a: 0,
+        why: "*/10 은 ‘10 간격으로’라는 뜻. 분 칸에 있으니 10분마다 실행돼요." },
+      { t: "blank", q: "매주 월요일 아침 8시: `0 8 * * ___`",
+        tokens: ["1", "0", "7", "*"], a: "1",
+        why: "요일 칸은 0(일요일)부터 시작해요. 월요일은 1!" },
+      { t: "mc", q: "`0 0 1 * *` 는 언제 실행될까요?",
+        opts: ["매월 1일 자정", "매일 새벽 1시", "1분마다", "매주 월요일 자정"], a: 0,
+        why: "분=0, 시=0(자정), 일=1 → 매달 1일 00:00. 월간 리포트 자동화에 딱!" }
+    ]
+  }]
+},
+{
+  id: "u3", emoji: "🧱", color: "#58cc02", dark: "#46a302",
+  title: "유닛 3 · 핵심 노드",
+  desc: "실무에서 제일 많이 쓰는 노드 8개",
+  lessons: [
+  {
+    id: "l5", icon: "🔧", title: "만능 노드들",
+    tip: { title: "💡 데이터를 다루는 3대장", body: "<b>HTTP Request</b>는 외부 API 호출, <b>Edit Fields</b>(구 Set)는 필드 추가·수정·삭제, <b>Code</b>는 JavaScript로 자유로운 가공. 이 셋만 알아도 웬만한 건 다 만들어요!" },
+    ex: [
+      { t: "mc", q: "이 아이콘의 노드는? 외부 API를 호출할 때 써요.", img: "icons/http-request.svg",
+        opts: ["HTTP Request", "Edit Fields", "Wait", "Sticky Note"], a: 0,
+        why: "HTTP Request 노드로 GET/POST 등 모든 외부 API를 호출할 수 있어요." },
+      { t: "mc", q: "필드를 추가·수정·삭제하는 노드는? (예전 이름: Set)",
+        opts: ["Edit Fields", "Code", "Merge", "Filter"], a: 0,
+        why: "Edit Fields(구 Set) 노드로 데이터 필드를 자유롭게 다듬어요." },
+      { t: "mc", q: "이 아이콘의 노드는? JavaScript로 데이터를 자유롭게 가공해요.", img: "icons/code.svg",
+        opts: ["Code", "IF", "Split Out", "Webhook"], a: 0,
+        why: "Code 노드에서 JavaScript로 복잡한 변환 로직을 직접 짤 수 있어요." },
+      { t: "blank", q: "API에서 데이터를 ‘조회’할 때 HTTP Request의 메서드는 보통 ___",
+        tokens: ["GET", "POST", "DELETE", "PATCH"], a: "GET",
+        why: "조회는 GET, 생성은 POST, 수정은 PUT/PATCH, 삭제는 DELETE!" },
+      { t: "tf", q: "Edit Fields 노드는 예전에 ‘Set’ 노드라고 불렸다.", a: true,
+        why: "맞아요. 오래된 튜토리얼에서 Set 노드가 나오면 Edit Fields라고 생각하면 돼요." },
+      { t: "order", q: "매일 아침 API 데이터를 받아 Slack에 알리는 워크플로우를 조립해 보세요!",
+        seq: ["Schedule Trigger", "HTTP Request", "Edit Fields", "Slack"],
+        why: "트리거로 시작 → API 호출 → 데이터 다듬기 → Slack 발송. 자동화의 기본 골격이에요." },
+      { t: "mc", q: "서버에 새 데이터를 ‘생성’해 달라고 요청하는 HTTP 메서드는?",
+        opts: ["POST", "GET", "HEAD", "OPTIONS"], a: 0,
+        why: "POST는 생성 요청이에요. 폼 제출, 메시지 발송 등에 쓰여요." }
+    ]
+  },
+  {
+    id: "l6", icon: "🚦", title: "흐름 제어",
+    tip: { title: "💡 데이터의 교통정리", body: "<b>IF</b>는 true/false 두 갈래 분기, <b>Filter</b>는 조건에 맞는 아이템만 통과, <b>Merge</b>는 브랜치 합치기, <b>Split Out</b>은 배열을 개별 아이템으로, <b>Loop Over Items</b>는 하나씩 순차 처리!" },
+    ex: [
+      { t: "mc", q: "이 아이콘의 노드는? 조건에 따라 true/false 두 갈래로 나눠요.", img: "icons/if.svg",
+        opts: ["IF", "Merge", "Code", "Wait"], a: 0,
+        why: "IF 노드는 조건 결과에 따라 true/false 두 출력 경로로 분기해요." },
+      { t: "mc", q: "조건에 맞는 아이템‘만’ 통과시키고 나머지는 버리는 노드는?",
+        opts: ["Filter", "IF", "Split Out", "Loop Over Items"], a: 0,
+        why: "Filter는 조건을 만족하는 아이템만 다음 노드로 보내요. (IF는 두 갈래로 나눔)" },
+      { t: "mc", q: "두 개의 브랜치를 하나로 합치는 노드는?",
+        opts: ["Merge", "IF", "Filter", "Code"], a: 0,
+        why: "IF로 갈라진 흐름도 Merge로 다시 하나로 합칠 수 있어요." },
+      { t: "mc", q: "배열 하나를 개별 아이템 여러 개로 쪼개는 노드는?",
+        opts: ["Split Out", "Merge", "Edit Fields", "Wait"], a: 0,
+        why: "API 응답의 배열을 Split Out으로 쪼개면 아이템 단위로 처리할 수 있어요." },
+      { t: "mc", q: "이 아이콘의 노드는? 아이템을 하나씩(배치로) 순차 처리해요.", img: "icons/loop-over-items.svg",
+        opts: ["Loop Over Items", "Split Out", "IF", "Code"], a: 0,
+        why: "Loop Over Items는 아이템을 배치 단위로 나눠 하나씩 순서대로 처리해요." },
+      { t: "tf", q: "IF 노드의 출력(가지)은 하나뿐이다.", a: false,
+        why: "IF 노드는 true / false 두 개의 출력 경로를 가져요." },
+      { t: "match", q: "흐름 제어 노드와 역할을 짝지어 보세요!",
+        pairs: [["IF", "조건 분기 (true/false)"], ["Filter", "조건에 맞는 것만 통과"], ["Merge", "브랜치 합치기"], ["Split Out", "배열 → 개별 아이템"], ["Loop Over Items", "하나씩 순차 처리"]] },
+      { t: "order", q: "주문 목록(배열)에서 5만원 이상만 골라 하나씩 처리하는 흐름을 조립해 보세요!",
+        seq: ["Webhook Trigger", "Split Out", "Filter", "Loop Over Items"],
+        why: "배열 받기 → 개별 아이템으로 분리 → 조건 필터링 → 하나씩 처리. 실무 단골 패턴!" }
+    ]
+  }]
+},
+{
+  id: "u4", emoji: "✨", color: "#ce82ff", dark: "#a855f7",
+  title: "유닛 4 · 표현식의 마법",
+  desc: "{{ }} 중괄호 두 개로 부리는 마법",
+  lessons: [
+  {
+    id: "l7", icon: "🪄", title: "표현식 기초",
+    tip: { title: "💡 표현식이란?", body: "노드 파라미터에 <code>{{ }}</code>를 입력하면 표현식 모드가 켜져요. <code>{{ $json.name }}</code>처럼 이전 노드의 데이터를 동적으로 끼워 넣을 수 있고, 안에서는 JavaScript 문법이 그대로 통해요!" },
+    ex: [
+      { t: "mc", q: "노드 파라미터 창에서 표현식 모드를 켜려면 무엇을 입력할까요?",
+        opts: ["{{ }}", "[[ ]]", "<% %>", "${ }"], a: 0,
+        why: "중괄호 두 개 {{ }} 를 입력하면 표현식 모드가 활성화돼요." },
+      { t: "blank", q: "현재 아이템의 name 필드 읽기: `{{ ___.name }}`",
+        tokens: ["$json", "$node", "$now", "$env"], a: "$json",
+        why: "$json은 현재 아이템의 데이터 전체를 가리켜요." },
+      { t: "mc", q: "`{{ $json.email }}` 의 의미는?",
+        opts: ["현재 아이템의 email 필드 값", "이메일을 발송한다", "모든 아이템의 이메일 배열", "이메일 형식을 검증한다"], a: 0,
+        why: "$json.email은 지금 처리 중인 아이템의 email 필드를 읽어요." },
+      { t: "blank", q: "특정 노드의 출력 참조: `{{ ___[\"노드명\"].json.field }}`",
+        tokens: ["$node", "$json", "$input", "$item"], a: "$node",
+        why: "$node[\"노드명\"]으로 바로 앞이 아닌 다른 노드의 출력도 가져올 수 있어요." },
+      { t: "tf", q: "표현식 안에서는 JavaScript 문법을 그대로 쓸 수 있다.", a: true,
+        why: "삼항 연산자, 문자열 메서드, 산술 연산 등 JS 문법이 대부분 통해요." },
+      { t: "mc", q: "`{{ $input.all().length }}` 는 무엇을 돌려줄까요?",
+        opts: ["전체 입력 아이템의 개수", "첫 번째 아이템의 글자 수", "노드의 개수", "실행에 걸린 시간"], a: 0,
+        why: "$input.all()은 입력 아이템 전체 배열, .length는 그 개수!" },
+      { t: "blank", q: "환경 변수 접근: `{{ ___.MY_KEY }}`",
+        tokens: ["$env", "$json", "$var", "$secret"], a: "$env",
+        why: "민감 정보는 환경 변수로 주입하고 {{ $env.변수명 }} 으로 읽는 게 안전해요." }
+    ]
+  },
+  {
+    id: "l8", icon: "🔮", title: "표현식 심화",
+    tip: { title: "💡 날짜와 조건", body: "n8n의 날짜는 <b>Luxon</b> 라이브러리를 써요. <code>{{ $now.toFormat('yyyy-MM-dd') }}</code>는 오늘 날짜! 조건에는 삼항 연산자 <code>조건 ? 참 : 거짓</code>을 애용하세요." },
+    ex: [
+      { t: "mc", q: "`{{ $now.toFormat('yyyy-MM-dd') }}` 의 결과는?",
+        opts: ["오늘 날짜 (예: 2026-07-07)", "현재 시각의 타임스탬프 숫자", "요일 이름", "어제 날짜"], a: 0,
+        why: "$now는 현재 시각, toFormat은 Luxon의 날짜 포맷 함수예요." },
+      { t: "tf", q: "n8n의 날짜·시간 처리는 Luxon 라이브러리를 사용한다.", a: true,
+        why: "moment가 아니라 Luxon! toFormat, plus, minus 같은 Luxon 메서드를 써요." },
+      { t: "mc", q: "`{{ $json.score > 80 ? '합격' : '불합격' }}` 에서 score가 75라면 결과는?",
+        opts: ["불합격", "합격", "에러 발생", "75"], a: 0,
+        why: "75 > 80 은 false → 삼항 연산자의 ‘:’ 뒤 값인 ‘불합격’이 나와요." },
+      { t: "order", q: "표현식 조립: 점수가 90 초과면 'A', 아니면 'B'",
+        seq: ["$json.score", ">", "90", "?", "'A'", ":", "'B'"],
+        why: "조건 ? 참일때 : 거짓일때 — 삼항 연산자의 순서예요." },
+      { t: "blank", q: "오늘을 2026-07-07 형태로: `{{ $now.___('yyyy-MM-dd') }}`",
+        tokens: ["toFormat", "format", "strftime", "dateFormat"], a: "toFormat",
+        why: "Luxon의 포맷 메서드는 toFormat이에요. (moment의 format과 헷갈리지 마세요!)" },
+      { t: "mc", q: "`$now` 는 무엇일까요?",
+        opts: ["현재 시각 (Luxon DateTime 객체)", "현재 노드의 이름", "실행 ID", "마지막 아이템"], a: 0,
+        why: "$now는 Luxon DateTime 객체라서 .toFormat(), .plus() 등을 바로 쓸 수 있어요." },
+      { t: "tf", q: "`{{ $json.name.toUpperCase() }}` 처럼 JS 메서드를 이어서 쓸 수 있다.", a: true,
+        why: "표현식 안은 JavaScript! 문자열·배열 메서드를 자유롭게 체이닝하세요." }
+    ]
+  }]
+},
+{
+  id: "u5", emoji: "🏆", color: "#ffc800", dark: "#e6a800",
+  title: "유닛 5 · 프로의 길",
+  desc: "에러 처리와 실전 꿀팁으로 마무리",
+  lessons: [
+  {
+    id: "l9", icon: "🛡️", title: "에러? 문제없어",
+    tip: { title: "💡 에러 처리 3종 세트", body: "<b>Retry on Fail</b>: 실패 시 자동 재시도. <b>Continue on Fail</b>: 에러 아이템에 error 필드를 달고 계속 진행. <b>Error Trigger</b>: 실패 시 별도 알림 워크플로우 실행. 셋 다 노드의 <b>Settings 탭</b>에서!" },
+    ex: [
+      { t: "mc", q: "노드가 실패했을 때 자동으로 다시 시도하게 하는 설정은?",
+        opts: ["Retry on Fail", "Continue on Fail", "Always Output Data", "Execute Once"], a: 0,
+        why: "Retry on Fail을 켜면 재시도 횟수와 간격을 정해 자동으로 다시 시도해요." },
+      { t: "mc", q: "에러가 나도 error 필드를 달고 워크플로우를 계속 진행시키는 설정은?",
+        opts: ["Continue on Fail", "Retry on Fail", "Stop and Error", "Wait"], a: 0,
+        why: "Continue on Fail은 실패한 아이템을 error 필드와 함께 다음 노드로 넘겨요." },
+      { t: "mc", q: "이 아이콘의 노드는? 워크플로우가 실패했을 때 실행돼요.", img: "icons/error-trigger.svg",
+        opts: ["Error Trigger", "Manual Trigger", "Webhook", "Chat Trigger"], a: 0,
+        why: "Error Trigger로 시작하는 별도 워크플로우를 연결하면 실패 알림을 자동화할 수 있어요." },
+      { t: "tf", q: "Retry on Fail은 재시도 횟수와 간격을 설정할 수 있다.", a: true,
+        why: "예: 3회, 5초 간격. 일시적인 네트워크 오류에 특히 유용해요." },
+      { t: "blank", q: "Retry / Continue 설정은 노드의 ___ 탭에 있어요.",
+        tokens: ["Settings", "Parameters", "Docs", "Credentials"], a: "Settings",
+        why: "노드를 열고 Parameters 옆의 Settings 탭에서 켤 수 있어요." },
+      { t: "match", q: "에러 처리 기능과 역할을 짝지어 보세요!",
+        pairs: [["Retry on Fail", "실패 시 자동 재시도"], ["Continue on Fail", "에러 무시하고 계속 진행"], ["Error Trigger", "실패 시 별도 워크플로우 실행"], ["Stop and Error", "의도적으로 에러 발생시키기"]] },
+      { t: "mc", q: "워크플로우 실패를 Slack으로 알림받는 가장 좋은 방법은?",
+        opts: ["Error Trigger 워크플로우에 Slack 노드 연결", "매분 실행 로그를 새로고침", "에러가 안 나길 기도하기", "모든 노드를 두 번씩 배치"], a: 0,
+        why: "Error Trigger + Slack 조합이 정석! 실패 즉시 채널로 알림이 날아와요." }
+    ]
+  },
+  {
+    id: "l10", icon: "🎓", title: "프로처럼 쓰기",
+    tip: { title: "💡 프로의 꿀팁", body: "<b>Pin Data</b>로 API 응답을 고정해 외부 호출 없이 테스트, <b>Execute Once</b>로 아이템이 많아도 딱 한 번 실행, 큰 워크플로우는 <b>Execute Sub-workflow</b>로 분리. 단축키 <code>Tab</code>(노드 추가)도 잊지 마세요!" },
+    ex: [
+      { t: "mc", q: "실제 API 응답을 고정해두고 외부 호출 없이 테스트하는 기능은?",
+        opts: ["Pin Data", "Execute Once", "Sticky Note", "Mock Server"], a: 0,
+        why: "Pin Data로 응답을 고정하면 매번 API를 호출하지 않고 하위 노드를 테스트할 수 있어요." },
+      { t: "mc", q: "아이템이 100개여도 노드를 딱 한 번만 실행하려면? (예: 요약 알림 발송)",
+        opts: ["Execute Once 켜기", "Loop Over Items 사용", "Retry on Fail 켜기", "Filter로 99개 버리기"], a: 0,
+        why: "노드 Settings의 Execute Once를 켜면 아이템 수와 관계없이 한 번만 실행돼요." },
+      { t: "mc", q: "이 아이콘의 노드는? 큰 워크플로우를 나눠 서브 워크플로우를 호출해요.", img: "icons/execute-sub-workflow.svg",
+        opts: ["Execute Sub-workflow", "HTTP Request", "Merge", "Wait"], a: 0,
+        why: "큰 워크플로우는 작게 쪼개고 Execute Sub-workflow로 호출하면 관리가 쉬워요." },
+      { t: "tf", q: "처음엔 Manual Trigger로 만들고, 완성 후 Schedule로 바꾸면 디버깅이 쉽다.", a: true,
+        why: "테스트는 수동으로, 운영은 자동으로! 프로들의 기본 루틴이에요." },
+      { t: "mc", q: "캔버스에서 노드를 추가하는 단축키는?",
+        opts: ["Tab", "Ctrl + N", "F2", "Space"], a: 0,
+        why: "Tab 하나면 노드 검색창이 열려요. F2는 이름 변경, Space+드래그는 캔버스 이동!" },
+      { t: "blank", q: "워크플로우 실행 단축키: `Ctrl(⌘) + ___`",
+        tokens: ["Enter", "S", "Z", "F"], a: "Enter",
+        why: "Ctrl/⌘+Enter로 실행, Ctrl/⌘+S로 저장, Ctrl/⌘+Z로 실행 취소!" },
+      { t: "match", q: "단축키와 기능을 짝지어 보세요!",
+        pairs: [["Tab", "노드 추가"], ["Ctrl/⌘ + Enter", "워크플로우 실행"], ["F2", "노드 이름 변경"], ["D", "노드 복제"], ["Ctrl/⌘ + S", "저장"]] },
+      { t: "mc", q: "비슷한 워크플로우 템플릿을 찾아 시작점으로 쓰려면 어디로 갈까요?",
+        opts: ["n8n.io/workflows", "앱스토어", "크롬 확장 프로그램 마켓", "스팀 상점"], a: 0,
+        why: "n8n.io/workflows에 수천 개의 템플릿이 있어요. 맨땅에서 시작하지 마세요!" }
+    ]
+  }]
+}
+];
+
+const LEVELS = [
+  { xp: 0,   name: "자동화 새싹" },
+  { xp: 40,  name: "견습 자동화러" },
+  { xp: 100, name: "워크플로우 장인" },
+  { xp: 180, name: "표현식 마법사" },
+  { xp: 280, name: "n8n 마스터" }
+];
+const MAX_HEARTS = 5;
+
+/* ─── 상태 & 저장 ──────────────────────────────────────── */
+const STORE_KEY = "n8n-academy-v1";
+let state = {
+  xp: 0, streak: 0, lastDay: null,
+  done: {},          // lessonId -> stars(1~3)
+  sound: true
+};
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) state = Object.assign(state, JSON.parse(raw));
+  } catch (e) { /* 프라이빗 모드 등 */ }
+}
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+function yesterdayStr() {
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/* ─── 유틸 ─────────────────────────────────────────────── */
+const $ = (sel) => document.querySelector(sel);
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+/* `코드` 마크업 지원 */
+function fmt(s) {
+  return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+}
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function allLessons() {
+  return UNITS.flatMap(u => u.lessons.map(l => ({ ...l, unit: u })));
+}
+function lessonUnlocked(id) {
+  const list = allLessons();
+  const idx = list.findIndex(l => l.id === id);
+  if (idx === 0) return true;
+  return !!state.done[list[idx - 1].id];
+}
+function firstIncomplete() {
+  const list = allLessons();
+  return list.find(l => !state.done[l.id]) || null;
+}
+
+/* ─── 효과음 (WebAudio) ────────────────────────────────── */
+let audioCtx = null;
+function beep(freq, dur, delay, type, vol) {
+  if (!state.sound) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime + (delay || 0);
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol || 0.15, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(t); osc.stop(t + dur);
+  } catch (e) {}
+}
+const sfx = {
+  correct() { beep(660, .12, 0); beep(880, .18, .1); },
+  wrong()   { beep(230, .22, 0, "square", .08); beep(180, .28, .12, "square", .08); },
+  select()  { beep(520, .06, 0, "sine", .06); },
+  match()   { beep(740, .1, 0); },
+  win()     { [523, 659, 784, 1047].forEach((f, i) => beep(f, .22, i * .13)); },
+  lose()    { [330, 262, 196].forEach((f, i) => beep(f, .3, i * .18, "triangle", .1)); }
+};
+
+/* ─── 컨페티 ───────────────────────────────────────────── */
+function confetti() {
+  const cv = $("#confetti");
+  const ctx = cv.getContext("2d");
+  cv.width = innerWidth; cv.height = innerHeight;
+  const colors = ["#ff6d5a", "#ffc800", "#58cc02", "#1cb0f6", "#ce82ff"];
+  const parts = Array.from({ length: 120 }, () => ({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .5,
+    w: 6 + Math.random() * 6, h: 8 + Math.random() * 8,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2 + Math.random() * 3, vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * Math.PI, vr: -.1 + Math.random() * .2
+  }));
+  let frames = 0;
+  (function tick() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    if (++frames < 220) requestAnimationFrame(tick);
+    else ctx.clearRect(0, 0, cv.width, cv.height);
+  })();
+}
+
+/* ─── 상단 통계 렌더 ───────────────────────────────────── */
+function renderStats() {
+  $("#stat-streak").textContent = state.streak;
+  $("#stat-xp").textContent = state.xp;
+  $("#sound-btn").textContent = state.sound ? "🔊" : "🔇";
+  /* 레벨 */
+  let lv = 0;
+  for (let i = 0; i < LEVELS.length; i++) if (state.xp >= LEVELS[i].xp) lv = i;
+  const cur = LEVELS[lv], next = LEVELS[lv + 1];
+  $("#level-name").textContent = `Lv.${lv + 1} ${cur.name}`;
+  const pct = next ? Math.min(100, (state.xp - cur.xp) / (next.xp - cur.xp) * 100) : 100;
+  $("#level-fill").style.width = pct + "%";
+}
+
+/* ─── 뷰 전환 ──────────────────────────────────────────── */
+function showView(id) {
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+/* ─── 학습 경로 렌더 ───────────────────────────────────── */
+function renderPath() {
+  const box = $("#units");
+  box.innerHTML = "";
+  const next = firstIncomplete();
+  const doneCount = Object.keys(state.done).length;
+  const total = allLessons().length;
+  $("#hero-sub").textContent = doneCount >= total
+    ? "모든 레슨 완료! 복습으로 별 3개에 도전해 보세요 🌟"
+    : `레슨 ${doneCount}/${total} 완료 · 오늘도 한 레슨 어때요?`;
+
+  UNITS.forEach(unit => {
+    const uDiv = document.createElement("div");
+    uDiv.className = "unit";
+    uDiv.innerHTML = `
+      <div class="unit-head" style="background:${unit.color}; box-shadow:0 4px 0 ${unit.dark};">
+        <div><h2>${esc(unit.title)}</h2><p>${esc(unit.desc)}</p></div>
+        <div class="unit-emoji">${unit.emoji}</div>
+      </div>`;
+    const path = document.createElement("div");
+    path.className = "path";
+    unit.lessons.forEach((lesson, li) => {
+      const done = state.done[lesson.id];
+      const unlocked = lessonUnlocked(lesson.id);
+      const isCurrent = next && next.id === lesson.id;
+
+      if (li > 0) {
+        const link = document.createElement("div");
+        link.className = "path-link" + (done || unlocked ? " filled" : "");
+        path.appendChild(link);
+      }
+      const node = document.createElement("div");
+      node.className = "path-node";
+      const stars = done ? "⭐".repeat(done) : "";
+      node.innerHTML = `
+        <button class="lesson-btn ${done ? "done" : ""} ${!unlocked ? "locked" : ""} ${isCurrent ? "current" : ""}"
+                style="--c:${unit.color}; --cd:${unit.dark};" data-lesson="${lesson.id}"
+                ${!unlocked ? "disabled" : ""} aria-label="${esc(lesson.title)}">
+          ${isCurrent ? '<span class="start-tag">START</span>' : ""}
+          <span class="ring"></span>${done ? "👑" : (unlocked ? lesson.icon : "🔒")}
+        </button>
+        <div class="lesson-label">${esc(lesson.title)}</div>
+        <div class="lesson-stars">${stars}</div>`;
+      path.appendChild(node);
+    });
+    uDiv.appendChild(path);
+    box.appendChild(uDiv);
+  });
+
+  box.querySelectorAll(".lesson-btn:not(.locked)").forEach(btn => {
+    btn.addEventListener("click", () => startLesson(btn.dataset.lesson));
+  });
+}
+
+/* ─── 레슨 진행 ────────────────────────────────────────── */
+let L = null; // 현재 레슨 세션
+
+function startLesson(id) {
+  const lesson = allLessons().find(l => l.id === id);
+  if (!lesson) return;
+  L = {
+    lesson,
+    queue: lesson.ex.map((e, i) => i),  // 남은 문제 인덱스 (오답은 뒤로 재삽입)
+    needed: lesson.ex.length,
+    correct: 0, mistakes: 0,
+    hearts: MAX_HEARTS,
+    answered: false, checker: null, tipShown: false
+  };
+  showView("#view-lesson");
+  renderHearts(); renderProgress();
+  nextExercise();
+}
+
+function renderHearts() {
+  const h = $("#hearts");
+  h.textContent = "❤️ " + L.hearts;
+  h.classList.toggle("low", L.hearts <= 1);
+}
+function renderProgress() {
+  $("#pbar-fill").style.width = (L.correct / L.needed * 100) + "%";
+}
+function setFooter(mode, title, body) {
+  const foot = $("#lesson-footer");
+  const fb = $("#feedback");
+  foot.className = mode || "";
+  if (!title) { fb.innerHTML = ""; return; }
+  fb.innerHTML = `
+    <div class="fb-icon">${mode === "good" ? "✅" : "❌"}</div>
+    <div><div class="fb-title">${esc(title)}</div>
+    ${body ? `<div class="fb-body">${fmt(body)}</div>` : ""}</div>`;
+}
+
+function nextExercise() {
+  if (L.queue.length === 0) return finishLesson();
+  const ex = L.lesson.ex[L.queue[0]];
+  L.answered = false;
+  L.checker = null;
+  setFooter("", null);
+  const btn = $("#check-btn");
+  btn.textContent = "확인";
+  btn.disabled = true;
+  btn.className = "gbtn";
+
+  const area = $("#ex-area");
+  area.innerHTML = "";
+
+  /* 레슨 첫 문제 위에 팁 카드 */
+  if (!L.tipShown && L.lesson.tip) {
+    L.tipShown = true;
+    const tip = document.createElement("div");
+    tip.className = "tip-card";
+    tip.innerHTML = `<h3>${L.lesson.tip.title}</h3><p>${L.lesson.tip.body}</p>`;
+    area.appendChild(tip);
+  }
+
+  const renderers = { mc: renderMC, tf: renderTF, blank: renderBlank, order: renderOrder, match: renderMatch };
+  renderers[ex.t](ex, area);
+}
+
+/* ── 객관식 ── */
+function renderMC(ex, area) {
+  const kinds = { mc: "알맞은 답을 고르세요" };
+  area.insertAdjacentHTML("beforeend", `
+    <div class="ex-kind">🎯 ${kinds.mc}</div>
+    <div class="ex-q">${fmt(ex.q)}</div>
+    ${ex.img ? `<div class="ex-img"><img src="${ex.img}" alt=""></div>` : ""}
+    <div class="choices" id="choices"></div>`);
+  const order = shuffle(ex.opts.map((_, i) => i));
+  const box = $("#choices");
+  let sel = -1;
+  order.forEach((optIdx, pos) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.dataset.opt = optIdx;
+    b.innerHTML = `<span class="key">${pos + 1}</span><span>${fmt(ex.opts[optIdx])}</span>`;
+    b.addEventListener("click", () => {
+      if (L.answered) return;
+      sfx.select();
+      box.querySelectorAll(".choice").forEach(c => c.classList.remove("sel"));
+      b.classList.add("sel");
+      sel = optIdx;
+      $("#check-btn").disabled = false;
+    });
+    box.appendChild(b);
+  });
+  L.checker = () => {
+    const ok = sel === ex.a;
+    box.querySelectorAll(".choice").forEach(c => {
+      const i = +c.dataset.opt;
+      if (i === ex.a) c.classList.add("correct");
+      else if (i === sel && !ok) c.classList.add("wrong");
+      c.disabled = true;
+    });
+    return { ok, why: ex.why, answerText: ex.opts[ex.a] };
+  };
+}
+
+/* ── O/X ── */
+function renderTF(ex, area) {
+  area.insertAdjacentHTML("beforeend", `
+    <div class="ex-kind">⚖️ 맞으면 O, 틀리면 X</div>
+    <div class="ex-q">${fmt(ex.q)}</div>
+    <div class="choices tf" id="choices"></div>`);
+  const box = $("#choices");
+  let sel = null;
+  [[true, "⭕ 맞아요"], [false, "❌ 아니에요"]].forEach(([val, label]) => {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.innerHTML = `<span>${label}</span>`;
+    b.addEventListener("click", () => {
+      if (L.answered) return;
+      sfx.select();
+      box.querySelectorAll(".choice").forEach(c => c.classList.remove("sel"));
+      b.classList.add("sel");
+      sel = val; b.dataset.val = val;
+      $("#check-btn").disabled = false;
+    });
+    b.dataset.v = val;
+    box.appendChild(b);
+  });
+  L.checker = () => {
+    const ok = sel === ex.a;
+    box.querySelectorAll(".choice").forEach(c => {
+      const v = c.dataset.v === "true";
+      if (v === ex.a) c.classList.add("correct");
+      else if (v === sel && !ok) c.classList.add("wrong");
+      c.disabled = true;
+    });
+    return { ok, why: ex.why, answerText: ex.a ? "⭕ 맞아요" : "❌ 아니에요" };
+  };
+}
+
+/* ── 빈칸 채우기 ── */
+function renderBlank(ex, area) {
+  const [pre, post] = ex.q.split("___");
+  area.insertAdjacentHTML("beforeend", `
+    <div class="ex-kind">🧩 빈칸에 알맞은 것을 채우세요</div>
+    <div class="blank-sentence">${fmt(pre)}<span class="blank-slot" id="slot">&nbsp;</span>${fmt(post || "")}</div>
+    <div class="bank" id="bank"></div>`);
+  const bank = $("#bank");
+  const slot = $("#slot");
+  let picked = null;
+  shuffle(ex.tokens).forEach(tok => {
+    const b = document.createElement("button");
+    b.className = "token" + (ex.ko ? " ko-token" : "");
+    b.textContent = tok;
+    b.addEventListener("click", () => {
+      if (L.answered) return;
+      sfx.select();
+      /* 기존 선택 되돌리기 */
+      if (picked) {
+        bank.querySelectorAll(".token").forEach(t => { if (t.textContent === picked) t.classList.remove("used"); });
+      }
+      picked = tok;
+      b.classList.add("used");
+      slot.textContent = tok;
+      slot.classList.add("filled");
+      $("#check-btn").disabled = false;
+    });
+    bank.appendChild(b);
+  });
+  slot.addEventListener("click", () => {
+    if (L.answered || !picked) return;
+    bank.querySelectorAll(".token").forEach(t => { if (t.textContent === picked) t.classList.remove("used"); });
+    picked = null;
+    slot.innerHTML = "&nbsp;";
+    slot.classList.remove("filled");
+    $("#check-btn").disabled = true;
+  });
+  L.checker = () => {
+    const ok = picked === ex.a;
+    slot.style.color = ok ? "var(--green-d)" : "var(--red-d)";
+    return { ok, why: ex.why, answerText: ex.a };
+  };
+}
+
+/* ── 순서 배열 ── */
+function renderOrder(ex, area) {
+  area.insertAdjacentHTML("beforeend", `
+    <div class="ex-kind">🔀 올바른 순서로 배열하세요</div>
+    <div class="ex-q">${fmt(ex.q)}</div>
+    <div class="order-area" id="order-area"><span class="placeholder">아래 블록을 순서대로 탭하세요</span></div>
+    <div class="bank" id="bank"></div>`);
+  const areaBox = $("#order-area");
+  const bank = $("#bank");
+  let chosen = [];
+
+  let toks = shuffle(ex.seq);
+  if (toks.join("|") === ex.seq.join("|")) toks = toks.slice().reverse(); // 우연히 정답 순서로 나오는 것 방지
+
+  function renderChosen() {
+    areaBox.innerHTML = chosen.length
+      ? chosen.map((t, i) =>
+          `${i > 0 ? '<span class="order-arrow">→</span>' : ""}<button class="token${ex.ko ? " ko-token" : ""}" data-i="${i}">${esc(t)}</button>`
+        ).join("")
+      : '<span class="placeholder">아래 블록을 순서대로 탭하세요</span>';
+    areaBox.querySelectorAll(".token").forEach(b => {
+      b.addEventListener("click", () => {
+        if (L.answered) return;
+        sfx.select();
+        const t = chosen.splice(+b.dataset.i, 1)[0];
+        bank.querySelectorAll(".token").forEach(x => { if (x.textContent === t && x.classList.contains("used")) x.classList.remove("used"); });
+        renderChosen();
+        $("#check-btn").disabled = chosen.length !== ex.seq.length;
+      });
+    });
+  }
+  toks.forEach(tok => {
+    const b = document.createElement("button");
+    b.className = "token" + (ex.ko ? " ko-token" : "");
+    b.textContent = tok;
+    b.addEventListener("click", () => {
+      if (L.answered || b.classList.contains("used")) return;
+      sfx.select();
+      b.classList.add("used");
+      chosen.push(tok);
+      renderChosen();
+      $("#check-btn").disabled = chosen.length !== ex.seq.length;
+    });
+    bank.appendChild(b);
+  });
+  renderChosen();
+  L.checker = () => {
+    const ok = chosen.join("|") === ex.seq.join("|");
+    return { ok, why: ex.why, answerText: ex.seq.join(" → ") };
+  };
+}
+
+/* ── 짝 맞추기 ── */
+function renderMatch(ex, area) {
+  area.insertAdjacentHTML("beforeend", `
+    <div class="ex-kind">🤝 짝을 맞추세요</div>
+    <div class="ex-q">${fmt(ex.q)}</div>
+    <div class="match-grid" id="match-grid"></div>`);
+  const grid = $("#match-grid");
+  const lefts = ex.pairs.map(p => p[0]);
+  const rights = shuffle(ex.pairs.map(p => p[1]));
+  const lookup = new Map(ex.pairs.map(p => [p[0], p[1]]));
+  let selL = null, selR = null, matched = 0, wrongTries = 0;
+
+  const maxRows = Math.max(lefts.length, rights.length);
+  for (let i = 0; i < maxRows; i++) {
+    [["L", lefts[i]], ["R", rights[i]]].forEach(([side, text]) => {
+      const b = document.createElement("button");
+      b.className = "match-card";
+      if (text === undefined) { b.style.visibility = "hidden"; b.disabled = true; }
+      else { b.textContent = text; b.dataset.side = side; }
+      grid.appendChild(b);
+    });
+  }
+  grid.addEventListener("click", (e) => {
+    const b = e.target.closest(".match-card");
+    if (!b || b.classList.contains("ok") || L.answered) return;
+    sfx.select();
+    if (b.dataset.side === "L") {
+      if (selL) selL.classList.remove("sel");
+      selL = (selL === b) ? null : b;
+      if (selL) selL.classList.add("sel");
+    } else {
+      if (selR) selR.classList.remove("sel");
+      selR = (selR === b) ? null : b;
+      if (selR) selR.classList.add("sel");
+    }
+    if (selL && selR) {
+      const okPair = lookup.get(selL.textContent) === selR.textContent;
+      const a = selL, c = selR;
+      selL = selR = null;
+      if (okPair) {
+        sfx.match();
+        [a, c].forEach(x => { x.classList.remove("sel"); x.classList.add("ok"); });
+        matched++;
+        if (matched === ex.pairs.length) {
+          /* 전부 맞추면 자동으로 정답 처리 */
+          L.answered = true;
+          const perfect = wrongTries === 0;
+          handleResult(true, perfect ? "완벽한 짝 맞추기!" : "짝 맞추기 완료!", null, true);
+        }
+      } else {
+        sfx.wrong();
+        wrongTries++; L.mistakes++;
+        [a, c].forEach(x => {
+          x.classList.remove("sel"); x.classList.add("bad");
+          setTimeout(() => x.classList.remove("bad"), 450);
+        });
+      }
+    }
+  });
+  L.checker = null; // match는 자동 판정
+}
+
+/* ─── 채점 & 진행 ──────────────────────────────────────── */
+function handleResult(ok, title, why, skipHeart) {
+  const btn = $("#check-btn");
+  L.answered = true;
+  if (ok) {
+    sfx.correct();
+    L.correct++;
+    L.queue.shift();
+    renderProgress();
+    setFooter("good", title || praise(), why || "");
+    btn.className = "gbtn";
+  } else {
+    sfx.wrong();
+    L.mistakes++;
+    if (!skipHeart) {
+      L.hearts--;
+      renderHearts();
+    }
+    /* 오답 문제는 맨 뒤로 보내 다시 풀게 */
+    const cur = L.queue.shift();
+    L.queue.push(cur);
+    setFooter("bad", title || "아쉬워요!", why || "");
+    btn.className = "gbtn gbtn-red";
+    if (L.hearts <= 0) {
+      btn.textContent = "결과 보기";
+      btn.disabled = false;
+      btn.onclickOnce = "fail";
+      return;
+    }
+  }
+  btn.textContent = "계속하기";
+  btn.disabled = false;
+}
+const PRAISES = ["정답이에요! 🎉", "훌륭해요!", "완벽해요! ✨", "그렇죠!", "자동화 감각이 좋은데요? 🍿", "나이스!"];
+function praise() { return PRAISES[Math.floor(Math.random() * PRAISES.length)]; }
+
+$("#check-btn").addEventListener("click", () => {
+  const btn = $("#check-btn");
+  if (btn.onclickOnce === "fail") { btn.onclickOnce = null; return failLesson(); }
+  if (!L) return;
+  if (L.answered) {
+    if (L.hearts <= 0) return failLesson();
+    return nextExercise();
+  }
+  if (!L.checker) return;
+  const r = L.checker();
+  if (r.ok) handleResult(true, null, r.why);
+  else handleResult(false, "정답: " + r.answerText, r.why);
+});
+
+/* 키보드: 1~9 선택, Enter 확인/계속 */
+document.addEventListener("keydown", (e) => {
+  if (!$("#view-lesson").classList.contains("active")) return;
+  if (e.key === "Enter") {
+    const btn = $("#check-btn");
+    if (!btn.disabled) { e.preventDefault(); btn.click(); }
+  } else if (/^[1-9]$/.test(e.key) && !L.answered) {
+    const items = document.querySelectorAll("#choices .choice, #bank .token:not(.used)");
+    const i = +e.key - 1;
+    if (items[i]) items[i].click();
+  }
+});
+
+/* ─── 레슨 종료 ────────────────────────────────────────── */
+function updateStreakOnComplete() {
+  const today = todayStr();
+  if (state.lastDay === today) return;
+  state.streak = (state.lastDay === yesterdayStr()) ? state.streak + 1 : 1;
+  state.lastDay = today;
+}
+
+function finishLesson() {
+  const perfect = L.mistakes === 0;
+  const stars = perfect ? 3 : (L.mistakes <= 2 ? 2 : 1);
+  const already = state.done[L.lesson.id] || 0;
+  const replay = already > 0;
+  const gained = replay ? 5 : (10 + (perfect ? 5 : 0));
+  state.xp += gained;
+  state.done[L.lesson.id] = Math.max(already, stars);
+  updateStreakOnComplete();
+  saveState(); renderStats();
+  sfx.win(); confetti();
+
+  const acc = Math.round(L.needed / (L.needed + L.mistakes) * 100);
+  $("#result-box").innerHTML = `
+    <div class="big">${perfect ? "🏆" : "🎉"}</div>
+    <h2>${perfect ? "완벽한 레슨!" : "레슨 완료!"}</h2>
+    <p class="sub">${esc(L.lesson.title)} ${replay ? "· 복습 완료" : ""}</p>
+    <div class="stars-big">${"⭐".repeat(stars)}${"☆".repeat(3 - stars)}</div>
+    <div class="reward-row">
+      <div class="reward reward-xp"><span class="r-label">획득 XP</span><span class="r-val">+${gained}</span></div>
+      <div class="reward reward-streak"><span class="r-label">스트릭</span><span class="r-val">🔥 ${state.streak}일</span></div>
+      <div class="reward reward-acc"><span class="r-label">정확도</span><span class="r-val">${acc}%</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="gbtn gbtn-accent" id="result-continue">계속하기</button>
+    </div>`;
+  $("#result-continue").addEventListener("click", () => { L = null; renderPath(); renderStats(); showView("#view-path"); });
+  showView("#view-result");
+}
+
+function failLesson() {
+  sfx.lose();
+  $("#result-box").innerHTML = `
+    <div class="big">💔</div>
+    <h2>하트를 모두 잃었어요…</h2>
+    <p class="sub">괜찮아요! 틀린 문제가 실력이 돼요. 다시 도전해 볼까요?</p>
+    <div class="btn-row">
+      <button class="gbtn" id="retry-btn">다시 도전</button>
+      <button class="gbtn gbtn-ghost" id="giveup-btn">학습 경로로</button>
+    </div>`;
+  const id = L.lesson.id;
+  $("#retry-btn").addEventListener("click", () => startLesson(id));
+  $("#giveup-btn").addEventListener("click", () => { L = null; renderPath(); showView("#view-path"); });
+  showView("#view-result");
+}
+
+$("#quit-btn").addEventListener("click", () => {
+  if (confirm("레슨을 나가면 진행 상황이 사라져요. 정말 나갈까요?")) {
+    L = null; renderPath(); showView("#view-path");
+  }
+});
+
+$("#sound-btn").addEventListener("click", () => {
+  state.sound = !state.sound;
+  saveState(); renderStats();
+  if (state.sound) sfx.select();
+});
+
+/* ─── 스트릭 체크(방문 시): 어제도 오늘도 아니면 리셋 ─── */
+function checkStreakDecay() {
+  if (state.lastDay && state.lastDay !== todayStr() && state.lastDay !== yesterdayStr()) {
+    state.streak = 0;
+    saveState();
+  }
+}
+
+/* ─── 시작 ─────────────────────────────────────────────── */
+loadState();
+checkStreakDecay();
+renderStats();
+renderPath();
+</script>
+</body>
+</html>
