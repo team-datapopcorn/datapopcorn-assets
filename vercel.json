@@ -1,0 +1,14 @@
+{
+  "cleanUrls": true,
+  "redirects": [
+    { "source": "/", "destination": "/n8n-academy/", "permanent": false }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" }
+      ]
+    }
+  ]
+}
