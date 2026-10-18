@@ -10,7 +10,7 @@
 <meta property="og:image" content="https://datapopcorn.ai/blog/img/disaster-alerts-dashboard-og.jpg">
 <link rel="canonical" href="https://datapopcorn.ai/blog/disaster-alerts-dashboard">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="/blog/vendor/echarts-5.5.1.min.js"></script>
 <style>
 :root{--bg:#F5F5F0;--card:#FFFFFF;--ink:#1F2328;--mute:#6B6F76;--line:#E3E3DC;--red:#C8405A;--red2:#E08A9B;--grey:#8A9096}
 *{box-sizing:border-box}
@@ -92,7 +92,7 @@ table.m th,table.m td{padding:7px 8px;border-bottom:1px solid var(--line);text-a
   <div class="foot" id="foot"></div>
 </div>
 <script>
-const DATA_URL = new URLSearchParams(location.search).get('data') || 'https://raw.githubusercontent.com/team-datapopcorn/datapopcorn-assets/main/disaster-alerts-weather/dashboard/data.json';
+const DATA_URL = new URLSearchParams(location.search).get('data') || '/blog/dashboards/disaster-alerts/data.json';
 const C = {red:'#C8405A',red2:'#E08A9B',grey:'#8A9096',ink:'#1F2328',mute:'#6B6F76',line:'#E3E3DC'};
 const PALETTE = ['#C8405A','#E08A9B','#3E6B8A','#7FA7C4','#D9A441','#6E9E75','#9C7FB8','#B9BCC0'];
 const fmt = n => (n==null||isNaN(n)) ? '-' : Math.round(n).toLocaleString('ko-KR');

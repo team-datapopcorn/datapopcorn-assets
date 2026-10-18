@@ -18,7 +18,9 @@
 
 ## 웹 대시보드
 
-[재난문자 × 날씨 대시보드](https://datapopcorn.ai/blog/disaster-alerts-dashboard)에서 연도·지역·유형을 골라 볼 수 있습니다. 대시보드는 이 폴더의 `dashboard/data.json`을 읽습니다. `data/`를 새로 받은 뒤 `python dashboard/build_dashboard_data.py`를 실행해 올리면 대시보드도 함께 갱신됩니다.
+[재난문자 × 날씨 대시보드](https://datapopcorn.ai/blog/disaster-alerts-dashboard)에서 연도·지역·유형을 골라 볼 수 있습니다. `dashboard/index.html`이 페이지 원본이고, `dashboard/data.json`이 그 데이터입니다. 블로그 보안 정책(CSP) 때문에 페이지·차트 라이브러리·데이터는 모두 datapopcorn.ai에서 함께 제공합니다(`tech-blog/static/disaster-alerts-dashboard.html`, `static/dashboards/disaster-alerts/data.json`, `static/vendor/echarts-5.5.1.min.js`). 로컬에서 볼 때는 `dashboard/` 폴더에서 `python -m http.server`를 띄우고 `index.html?data=./data.json`으로 엽니다.
+
+갱신 순서: `collect/collect.py` → `collect/prep.py` → `python dashboard/build_dashboard_data.py` → 만든 `data.json`을 블로그 `static/dashboards/disaster-alerts/`에 복사.
 
 ## 정리 규칙
 
