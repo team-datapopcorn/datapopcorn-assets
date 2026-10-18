@@ -16,6 +16,10 @@
 | `collect/collect.py` | 두 API에서 원자료를 처음부터 다시 받는 스크립트(키 필요, 선택) |
 | `collect/prep.py` | 원자료를 `data/`의 정리된 파일로 바꾸는 스크립트 |
 
+## 웹 대시보드
+
+[재난문자 × 날씨 대시보드](https://datapopcorn.ai/blog/disaster-alerts-dashboard)에서 연도·지역·유형을 골라 볼 수 있습니다. 대시보드는 이 폴더의 `dashboard/data.json`을 읽습니다. `data/`를 새로 받은 뒤 `python dashboard/build_dashboard_data.py`를 실행해 올리면 대시보드도 함께 갱신됩니다.
+
 ## 정리 규칙
 
 - **재난문자 본문은 공개하지 않습니다.** 실종자 이름과 인상착의가 들어간 문자가 있어서, 본문 대신 공백을 지운 본문의 SHA-1 앞 12자리(`msg_hash`)만 둡니다. 같은 문자를 반복 저장했는지 확인하는 데는 이것으로 충분합니다.

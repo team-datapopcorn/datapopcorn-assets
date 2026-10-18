@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>재난문자 × 날씨 대시보드 | 데이터팝콘</title>
+<meta name="description" content="행정안전부 긴급재난문자 6만여 건과 기상청 ASOS 관측을 지역·유형·시간대·날씨별로 살펴보는 대시보드입니다.">
+<meta property="og:title" content="재난문자 × 날씨 대시보드 | 데이터팝콘">
+<meta property="og:description" content="재난문자 6만여 건을 지역·유형·시간대·날씨별로 살펴봅니다.">
+<meta property="og:image" content="https://datapopcorn.ai/blog/img/disaster-alerts-dashboard-og.jpg">
+<link rel="canonical" href="https://datapopcorn.ai/blog/disaster-alerts-dashboard">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<style>
+:root{--bg:#F5F5F0;--card:#FFFFFF;--ink:#1F2328;--mute:#6B6F76;--line:#E3E3DC;--red:#C8405A;--red2:#E08A9B;--grey:#8A9096}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;font-size:15px;line-height:1.55}
+a{color:var(--red);text-decoration:none}a:hover{text-decoration:underline}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+.kicker{color:var(--red);font-weight:700;font-size:13px;letter-spacing:.02em}
+h1{font-size:30px;line-height:1.25;margin:6px 0 8px;letter-spacing:-.02em}
+.lead{color:var(--mute);margin:0 0 14px;max-width:820px}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.links a{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--ink)}
+.notice{background:#FBEFF1;border-left:3px solid var(--red);padding:10px 14px;border-radius:6px;font-size:13.5px;margin-bottom:18px}
+.filters{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-bottom:1px solid var(--line);margin-bottom:18px}
+.filters label{font-size:12px;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+select{font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);min-width:120px}
+.reset{margin-left:auto;font-size:13px;border:none;background:none;color:var(--red);cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi{background:var(--card);border-radius:12px;padding:14px 16px}
+.kpi .l{font-size:12px;color:var(--mute)}.kpi .v{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}.kpi .s{font-size:12px;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{background:var(--card);border-radius:12px;padding:16px 16px 8px;grid-column:span 12;min-width:0}
+.c6{grid-column:span 6}.c4{grid-column:span 4}.c8{grid-column:span 8}
+@media (max-width:860px){.c6,.c4,.c8{grid-column:span 12}h1{font-size:24px}.kpi{padding:10px 12px}.kpi .v{font-size:19px}.filters{position:static}}
+.card h2{font-size:16px;margin:0 0 2px}.card .sub{font-size:12.5px;color:var(--mute);margin:0 0 6px}
+.chart{width:100%;height:320px}.tall{height:380px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:4px 0 2px}
+.seg button{font:inherit;font-size:12.5px;border:none;background:var(--card);padding:5px 10px;cursor:pointer;color:var(--mute)}
+.seg button.on{background:var(--ink);color:#fff}
+.section{font-size:20px;margin:30px 0 4px;letter-spacing:-.01em}.section+p{color:var(--mute);margin:0 0 14px;font-size:14px}
+table.m{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+table.m th,table.m td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right}table.m th:first-child,table.m td:first-child{text-align:left}
+.foot{color:var(--mute);font-size:12.5px;margin-top:28px;border-top:1px solid var(--line);padding-top:14px}
+.loading{padding:60px 0;text-align:center;color:var(--mute)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kicker">DATAPOPCORN / DASHBOARD</div>
+  <h1>재난문자 × 날씨 대시보드</h1>
+  <p class="lead" id="lead">행정안전부 긴급재난문자와 기상청 ASOS 관측을 지역·유형·시간대·날씨별로 살펴봅니다.</p>
+  <div class="links">
+    <a id="lnk-blog" href="https://datapopcorn.ai/blog/disaster-alerts-weather-analysis">분석 글 읽기</a>
+    <a id="lnk-colab" href="#">Colab에서 재현하기</a>
+    <a id="lnk-repo" href="#">데이터 내려받기</a>
+  </div>
+  <div class="notice" id="gap-note">데이터 불러오는 중…</div>
+
+  <div class="filters">
+    <label>연도<select id="f-year"></select></label>
+    <label>지역<select id="f-sido"></select></label>
+    <label>재난 유형<select id="f-type"></select></label>
+    <button class="reset" id="f-reset">필터 초기화</button>
+  </div>
+
+  <div class="kpis" id="kpis"><div class="loading">불러오는 중…</div></div>
+
+  <div class="grid">
+    <div class="card"><h2>월별 발송 건수</h2><p class="sub" id="sub-month"></p><div id="ch-month" class="chart"></div></div>
+    <div class="card"><h2>일별 발송 건수와 날씨</h2><p class="sub" id="sub-day"></p><div id="ch-day" class="chart tall"></div></div>
+    <div class="card c6"><h2>유형 순위</h2><p class="sub" id="sub-type"></p><div id="ch-type" class="chart tall"></div></div>
+    <div class="card c6"><h2>지역 순위</h2><p class="sub" id="sub-sido"></p>
+      <div class="seg" id="seg-sido"><button data-v="raw" class="on">건수</button><button data-v="sgg">시군구 하나당</button></div>
+      <div id="ch-sido" class="chart tall"></div></div>
+    <div class="card"><h2>요일 × 시간대</h2><p class="sub" id="sub-hw"></p><div id="ch-hw" class="chart"></div></div>
+  </div>
+
+  <h2 class="section">날씨와 문자는 얼마나 맞을까</h2>
+  <p>2024~2026년 6~9월, 시도×일 기준. 블로그 글과 같은 정의로 계산한 고정 분석입니다(데이터 공백 31일 제외).</p>
+  <div class="grid">
+    <div class="card c6"><h2>체감온도별 폭염 문자 확률</h2><p class="sub">그날 시도 최고 체감온도(℃, 근사)별로 폭염 문자가 1건 이상 온 비율</p><div id="ch-dose" class="chart"></div></div>
+    <div class="card c6"><h2>강수량별 호우 문자 확률</h2><p class="sub">그날 시도 관측소 최대 일강수량(mm)별로 호우 문자가 1건 이상 온 비율</p><div id="ch-rain" class="chart"></div></div>
+    <div class="card c6"><h2>같은 체감온도, 연도별 폭염 문자 수</h2><p class="sub">체감온도(℃) 구간별 시도 하루 평균 폭염 문자 수</p><div id="ch-curve" class="chart"></div></div>
+    <div class="card c6"><h2>같은 날 두 번 이상 보낸 시군구 비율</h2><p class="sub">폭염 문자를 보낸 시군구-일 기준. 회색은 같은 본문 반복을 하나로 합친 값</p><div id="ch-rep" class="chart"></div></div>
+    <div class="card c8"><h2>더운 날 시군구 하나당 폭염 문자 수</h2><p class="sub">체감 33도 이상인 날, 시도 합계 ÷ 시군구 수</p><div id="ch-reg" class="chart tall"></div></div>
+    <div class="card c4"><h2>2024년 대비 문자 수 배율</h2><p class="sub">체감온도·시도·달·폭염 지속일을 같게 놓은 회귀</p><div id="tbl-irr"></div>
+      <p class="sub" style="margin-top:12px">포아송은 문자를 많이 보내는 시도에 무게가 실리고, 음이항은 시도 사이 흔들림을 더 크게 봅니다. 증가는 일부 시도에 몰려 있어 모형에 따라 유의성이 달라집니다.</p></div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+<script>
+const DATA_URL = new URLSearchParams(location.search).get('data') || 'https://raw.githubusercontent.com/team-datapopcorn/datapopcorn-assets/main/disaster-alerts-weather/dashboard/data.json';
+const C = {red:'#C8405A',red2:'#E08A9B',grey:'#8A9096',ink:'#1F2328',mute:'#6B6F76',line:'#E3E3DC'};
+const PALETTE = ['#C8405A','#E08A9B','#3E6B8A','#7FA7C4','#D9A441','#6E9E75','#9C7FB8','#B9BCC0'];
+const fmt = n => (n==null||isNaN(n)) ? '-' : Math.round(n).toLocaleString('ko-KR');
+const charts = {};
+const base = () => ({textStyle:{fontFamily:'Pretendard, sans-serif',color:C.ink},grid:{left:48,right:20,top:28,bottom:36,containLabel:true},
+  tooltip:{trigger:'axis',backgroundColor:'#fff',borderColor:C.line,textStyle:{color:C.ink,fontSize:12}}});
+const axis = (o={}) => Object.assign({axisLine:{lineStyle:{color:C.line}},axisTick:{show:false},axisLabel:{color:C.mute,fontSize:11},splitLine:{lineStyle:{color:'#EFEFEA'}}},o);
+function ch(id){ if(!charts[id]) charts[id]=echarts.init(document.getElementById(id),null,{renderer:'canvas'}); return charts[id]; }
+window.addEventListener('resize',()=>Object.values(charts).forEach(c=>c.resize()));
+
+let D, ST = {year:'all', sido:'전국', type:'all', sidoMode:'raw'};
+fetch(DATA_URL,{cache:'no-cache'}).then(r=>{if(!r.ok) throw new Error(r.status); return r.json();}).then(d=>{D=d; init();}).catch(e=>{
+  document.getElementById('gap-note').textContent='데이터를 불러오지 못했습니다('+e.message+'). 잠시 뒤 새로고침해 주세요.'; });
+
+function init(){
+  const m=D.meta;
+  document.getElementById('lnk-blog').href=m.blog; document.getElementById('lnk-colab').href=m.colab; document.getElementById('lnk-repo').href=m.repo;
+  document.getElementById('lead').textContent=`행정안전부 긴급재난문자 ${fmt(m.n_alerts)}건(${m.alerts_range[0]} ~ ${m.alerts_range[1]})과 기상청 ASOS ${m.n_stations}개 지점 관측을 지역·유형·시간대·날씨별로 살펴봅니다.`;
+  document.getElementById('gap-note').innerHTML=`<b>데이터 공백</b> ${m.gap[0]} ~ ${m.gap[1]} 동안 플랫폼 기록이 0건입니다. 2025년 9월 26일 국가정보자원관리원 대전센터 화재로 정부 전산망이 멈춘 시기와 겹칩니다. 문자가 안 간 것이 아니라 기록이 쌓이지 않은 것으로 보고, 날씨 분석에서는 뺐습니다.`;
+  document.getElementById('foot').innerHTML=`마지막 갱신 ${m.generated_at} · 출처: 행정안전부 긴급재난문자(재난안전데이터공유플랫폼 오픈API), 기상청 지상(종관, ASOS) 일자료(공공데이터포털, 공공누리 제1유형) · 여러 시도에 간 문자는 지역 필터에서 시도마다 1건으로 셉니다 · 체감온도는 기상청 여름철 식에 일최고기온·일최소습도를 넣은 근사값입니다 · 만든 곳 <a href="https://datapopcorn.ai">데이터팝콘</a>`;
+  const years=[...new Set(D.days.map(d=>d.slice(0,4)))];
+  fill('f-year',[['all','전체 기간'],...years.map(y=>[y,y+'년'])]);
+  fill('f-sido',[['전국','전국'],...D.sido.map(s=>[s,s==='광주전남'?'광주·전남':s])]);
+  fill('f-type',[['all','전체 유형'],...D.types.map(t=>[t,t])]);
+  ['year','sido','type'].forEach(k=>document.getElementById('f-'+k).addEventListener('change',e=>{ST[k]=e.target.value; render();}));
+  document.getElementById('f-reset').onclick=()=>{ST={...ST,year:'all',sido:'전국',type:'all'};['year','sido','type'].forEach(k=>document.getElementById('f-'+k).value=ST[k]);render();};
+  document.querySelectorAll('#seg-sido button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#seg-sido button').forEach(x=>x.classList.toggle('on',x===b));ST.sidoMode=b.dataset.v;renderSido();});
+  render(); renderAnalysis();
+}
+function fill(id,opts){document.getElementById(id).innerHTML=opts.map(([v,t])=>`<option value="${v}">${t}</option>`).join('');}
+const ti = t => D.types.indexOf(t), si = s => D.sido.indexOf(s);
+const monthOK = mi => ST.year==='all' || D.months[mi].startsWith(ST.year);
+const dayOK = di => ST.year==='all' || D.days[di].startsWith(ST.year);
+const typeOK = t => ST.type==='all' || t===ti(ST.type);
+function cubeMT(){ // returns rows [m,t,c] honoring sido filter
+  if(ST.sido==='전국') return D.nat_mt;
+  const s=si(ST.sido); return D.sido_mt.filter(r=>r[1]===s).map(r=>[r[0],r[2],r[3]]);
+}
+function render(){ renderKPI(); renderMonth(); renderDay(); renderType(); renderSido(); renderHW(); }
+function label(){ return [ST.year==='all'?'전체 기간':ST.year+'년', ST.sido==='전국'?'전국':ST.sido, ST.type==='all'?'전체 유형':ST.type].join(' · '); }
+
+function renderKPI(){
+  const rows=cubeMT().filter(r=>monthOK(r[0])&&typeOK(r[1]));
+  const total=rows.reduce((s,r)=>s+r[2],0);
+  const byT={}; rows.forEach(r=>byT[r[1]]=(byT[r[1]]||0)+r[2]);
+  const topT=Object.entries(byT).sort((a,b)=>b[1]-a[1])[0];
+  const daily=dailySeries(); let best=-1,bi=-1,nd=0; daily.forEach((v,i)=>{if(!dayOK(i))return; if(!inGap(i))nd++; if(v>best){best=v;bi=i;}});
+  const k=[['문자 수',fmt(total)+'건',label()],['하루 평균',(nd?(total/nd).toFixed(1):'-')+'건','공백 31일 제외'],
+    ['가장 많은 유형',topT?D.types[topT[0]]:'-',topT?fmt(topT[1])+'건 ('+(topT[1]/total*100).toFixed(0)+'%)':''],
+    ['가장 많은 날',bi>=0&&best>0?D.days[bi]:'-',best>0?fmt(best)+'건':'']];
+  if(ST.sido==='전국'&&ST.year==='all'&&ST.type==='all'){const st=D.step,sum=Object.values(st).reduce((a,b)=>a+b,0);k.push(['긴급·위급재난 단계',fmt((st['긴급재난']||0)+(st['위급재난']||0))+'건','전체의 '+(((st['긴급재난']||0)+(st['위급재난']||0))/sum*100).toFixed(1)+'%, 나머지는 안전안내']);}
+  document.getElementById('kpis').innerHTML=k.map(([l,v,s])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div></div>`).join('');
+}
+const gapI=()=>[D.days.indexOf(D.meta.gap[0]),D.days.indexOf(D.meta.gap[1])];
+const inGap=i=>{const [a,b]=gapI();return i>=a&&i<=b;};
+function dailySeries(){
+  const out=new Array(D.days.length).fill(0);
+  if(ST.sido==='전국'){ D.nat_dt.forEach(([d,t,c])=>{if(typeOK(t))out[d]+=c;}); return out; }
+  const s=si(ST.sido); let src=D.sido_d;
+  if(ST.type==='폭염') src=D.sido_d_heat; else if(ST.type==='호우') src=D.sido_d_rain; else if(ST.type!=='all') return null;
+  src.forEach(([d,ss,c])=>{if(ss===s)out[d]+=c;}); return out;
+}
+function renderMonth(){
+  const rows=cubeMT().filter(r=>monthOK(r[0])&&typeOK(r[1]));
+  const mIdx=D.months.map((m,i)=>i).filter(monthOK);
+  const byT={}; rows.forEach(r=>byT[r[1]]=(byT[r[1]]||0)+r[2]);
+  let groups = ST.type==='all' ? Object.entries(byT).sort((a,b)=>b[1]-a[1]).slice(0,6).map(e=>+e[0]) : [ti(ST.type)];
+  const series=groups.map((t,k)=>({name:D.types[t],type:'bar',stack:'a',barMaxWidth:28,itemStyle:{color:ST.type==='all'?PALETTE[k]:C.red},data:mIdx.map(m=>0)}));
+  const other={name:'그 밖의 유형',type:'bar',stack:'a',barMaxWidth:28,itemStyle:{color:'#C9CCD0'},data:mIdx.map(()=>0)};
+  const pos={}; mIdx.forEach((m,i)=>pos[m]=i);
+  rows.forEach(([m,t,c])=>{const g=groups.indexOf(t); if(g>=0) series[g].data[pos[m]]+=c; else other.data[pos[m]]+=c;});
+  if(ST.type==='all') series.push(other);
+  const gm=['2025-09','2025-10'].filter(x=>mIdx.map(i=>D.months[i]).includes(x));
+  if(gm.length) series[0].markArea={silent:true,itemStyle:{color:'rgba(200,64,90,0.08)'},label:{show:true,position:'insideTop',color:C.red,fontSize:11,formatter:'데이터 공백'},data:[[{xAxis:'2025-09'},{xAxis:'2025-10'}]].filter(()=>gm.length===2)};
+  document.getElementById('sub-month').textContent=label()+(ST.type==='all'?' · 상위 6개 유형을 색으로 구분':'');
+  ch('ch-month').setOption({...base(),legend:{show:ST.type==='all',top:0,textStyle:{fontSize:11,color:C.mute},itemWidth:10,itemHeight:10},grid:{left:40,right:16,top:ST.type==='all'?40:20,bottom:30,containLabel:true},
+    xAxis:axis({type:'category',data:mIdx.map(i=>D.months[i])}),yAxis:axis({type:'value'}),series},true);
+}
+function renderDay(){
+  const v=dailySeries(); const el=document.getElementById('sub-day');
+  if(!v){ ch('ch-day').clear(); el.textContent='시도를 고른 경우 일별 차트는 전체 유형·폭염·호우만 볼 수 있습니다. 지역을 전국으로 바꾸거나 유형을 바꿔 주세요.'; return; }
+  const idx=D.days.map((d,i)=>i).filter(dayOK);
+  const series=[{name:(ST.type==='all'?'재난문자':ST.type+' 문자'),type:'bar',barMaxWidth:6,itemStyle:{color:C.red},data:idx.map(i=>inGap(i)?null:v[i])}];
+  const yAxis=[axis({type:'value',name:'건',nameTextStyle:{color:C.mute,fontSize:11}})];
+  if(ST.sido!=='전국'){
+    const w=D.wx[ST.sido];
+    if(ST.type==='호우'){ series.push({name:'최대 일강수량(mm)',type:'line',yAxisIndex:1,symbol:'none',lineStyle:{width:1.2,color:'#3E6B8A'},data:idx.map(i=>w.rain[i])}); yAxis.push(axis({type:'value',name:'mm',splitLine:{show:false},nameTextStyle:{color:C.mute,fontSize:11}})); }
+    else { series.push({name:'최고 체감온도(℃)',type:'line',yAxisIndex:1,symbol:'none',lineStyle:{width:1.2,color:'#3E6B8A'},data:idx.map(i=>w.feels[i])});
+      series[1].markLine={silent:true,symbol:'none',lineStyle:{color:C.grey,type:'dashed'},label:{formatter:'33℃',color:C.mute,fontSize:10},data:[{yAxis:33}]};
+      yAxis.push(axis({type:'value',name:'℃',min:-20,max:40,splitLine:{show:false},nameTextStyle:{color:C.mute,fontSize:11}})); }
+  }
+  el.textContent=label()+(ST.sido==='전국'?' · 지역을 고르면 그 시도의 날씨(체감온도 또는 강수량)가 함께 그려집니다':' · 파란 선은 시도 안 관측소 최댓값(섬 지점 제외)')+' · 아래 막대를 끌어 기간을 좁힐 수 있습니다';
+  const n=idx.length, start=ST.year==='all'?Math.max(0,100-36500/n):0;
+  ch('ch-day').setOption({...base(),legend:{top:0,textStyle:{fontSize:11,color:C.mute}},grid:{left:40,right:40,top:36,bottom:64,containLabel:true},
+    xAxis:axis({type:'category',data:idx.map(i=>D.days[i])}),yAxis,dataZoom:[{type:'slider',start,end:100,height:18,bottom:10,borderColor:C.line,fillerColor:'rgba(200,64,90,0.12)'},{type:'inside'}],series},true);
+}
+function renderType(){
+  const rows=cubeMT().filter(r=>monthOK(r[0]));
+  const byT={}; rows.forEach(r=>byT[r[1]]=(byT[r[1]]||0)+r[2]);
+  const top=Object.entries(byT).sort((a,b)=>b[1]-a[1]).slice(0,12).reverse();
+  document.getElementById('sub-type').textContent=[ST.year==='all'?'전체 기간':ST.year+'년',ST.sido==='전국'?'전국':ST.sido].join(' · ')+' · 막대를 누르면 그 유형으로 필터합니다';
+  const c=ch('ch-type'); c.setOption({...base(),tooltip:{trigger:'item',formatter:p=>p.name+': '+fmt(p.value)+'건'},grid:{left:10,right:50,top:10,bottom:10,containLabel:true},
+    xAxis:axis({type:'value'}),yAxis:axis({type:'category',data:top.map(e=>D.types[e[0]])}),
+    series:[{type:'bar',barMaxWidth:18,data:top.map(e=>({value:e[1],itemStyle:{color:(ST.type===D.types[e[0]])?C.red:(ST.type==='all'&&e===top[top.length-1]?C.red:C.grey)}})),label:{show:true,position:'right',color:C.mute,fontSize:11,formatter:p=>fmt(p.value)}}]},true);
+  c.off('click'); c.on('click',p=>{ST.type=p.name;document.getElementById('f-type').value=p.name;render();});
+}
+function renderSido(){
+  const rows=D.sido_mt.filter(r=>monthOK(r[0])&&typeOK(r[2]));
+  const byS=new Array(D.sido.length).fill(0); rows.forEach(r=>byS[r[1]]+=r[3]);
+  let arr=D.sido.map((s,i)=>[s,ST.sidoMode==='sgg'?byS[i]/D.n_sgg[s]:byS[i]]).sort((a,b)=>a[1]-b[1]);
+  document.getElementById('sub-sido').textContent=[ST.year==='all'?'전체 기간':ST.year+'년',ST.type==='all'?'전체 유형':ST.type].join(' · ')+(ST.sidoMode==='sgg'?' · 시군구 수로 나눈 값(세종 1, 제주 2)':' · 시군구가 많은 시도일수록 커집니다')+' · 막대를 누르면 그 지역으로 필터합니다';
+  const c=ch('ch-sido'); c.setOption({...base(),tooltip:{trigger:'item',formatter:p=>p.name+': '+(ST.sidoMode==='sgg'?p.value.toFixed(1):fmt(p.value))+(ST.sidoMode==='sgg'?'건/시군구':'건')},grid:{left:10,right:56,top:10,bottom:10,containLabel:true},
+    xAxis:axis({type:'value'}),yAxis:axis({type:'category',data:arr.map(e=>e[0])}),
+    series:[{type:'bar',barMaxWidth:16,data:arr.map(e=>({value:e[1],itemStyle:{color:e[0]===ST.sido?C.red:C.grey}})),label:{show:true,position:'right',color:C.mute,fontSize:11,formatter:p=>ST.sidoMode==='sgg'?p.value.toFixed(1):fmt(p.value)}}]},true);
+  c.off('click'); c.on('click',p=>{ST.sido=p.name;document.getElementById('f-sido').value=p.name;render();});
+}
+function renderHW(){
+  const grid=[]; const W=['월','화','수','목','금','토','일'];
+  const m={}; D.hwt.forEach(([h,w,t,c])=>{if(!typeOK(t))return; const k=h+'_'+w; m[k]=(m[k]||0)+c;});
+  let mx=0; for(let w=0;w<7;w++)for(let h=0;h<24;h++){const v=m[h+'_'+w]||0; mx=Math.max(mx,v); grid.push([h,w,v]);}
+  document.getElementById('sub-hw').textContent=(ST.type==='all'?'전체 유형':ST.type)+' · 전국 · 전체 기간 기준(연도·지역 필터는 적용되지 않습니다)';
+  ch('ch-hw').setOption({...base(),tooltip:{trigger:'item',formatter:p=>W[p.value[1]]+'요일 '+p.value[0]+'시: '+fmt(p.value[2])+'건'},grid:{left:30,right:20,top:10,bottom:50,containLabel:true},
+    xAxis:axis({type:'category',data:[...Array(24).keys()].map(h=>h+'시'),splitArea:{show:false}}),yAxis:axis({type:'category',data:W,inverse:true}),
+    visualMap:{min:0,max:mx||1,calculable:false,orient:'horizontal',left:'center',bottom:0,itemHeight:120,itemWidth:10,textStyle:{color:C.mute,fontSize:11},inRange:{color:['#F7F2F3','#E08A9B','#C8405A','#7E1F33']}},
+    series:[{type:'heatmap',data:grid,itemStyle:{borderColor:'#fff',borderWidth:1}}]},true);
+}
+function renderAnalysis(){
+  const A=D.analysis;
+  const dose=A.heat_dose; ch('ch-dose').setOption({...base(),tooltip:{trigger:'axis',formatter:p=>p[0].name+'℃: '+(p[0].value*100).toFixed(0)+'% (시도-일 '+fmt(dose.n[p[0].dataIndex])+')'},
+    xAxis:axis({type:'category',data:dose.bins.map(b=>b===26?'26↓':b===37?'37↑':String(b))}),yAxis:axis({type:'value',max:1,axisLabel:{formatter:v=>v*100+'%',color:C.mute,fontSize:11}}),
+    series:[{type:'bar',barMaxWidth:26,data:dose.p.map((p,i)=>({value:p,itemStyle:{color:dose.bins[i]>=33?C.red:C.grey}})),label:{show:true,position:'top',fontSize:10,color:C.mute,formatter:p=>(p.value*100).toFixed(0)+'%'}}]});
+  const rd=A.rain_dose; ch('ch-rain').setOption({...base(),tooltip:{trigger:'axis',formatter:p=>p[0].name+'mm: '+(p[0].value*100).toFixed(0)+'% (시도-일 '+fmt(rd.n[p[0].dataIndex])+')'},
+    xAxis:axis({type:'category',data:rd.bins}),yAxis:axis({type:'value',max:1,axisLabel:{formatter:v=>v*100+'%',color:C.mute,fontSize:11}}),
+    series:[{type:'bar',barMaxWidth:36,data:rd.p.map((p,i)=>({value:p,itemStyle:{color:i>=4?C.red:C.grey}})),label:{show:true,position:'top',fontSize:11,color:C.mute,formatter:p=>(p.value*100).toFixed(0)+'%'}}]});
+  const cv=A.heat_curve, ys=['2024','2025','2026'], cc={2024:C.grey,2025:C.red,2026:C.red2};
+  const keep=cv.bins.map((b,i)=>i).filter(i=>cv.bins[i]>=29);
+  ch('ch-curve').setOption({...base(),legend:{top:0,textStyle:{fontSize:11,color:C.mute}},grid:{left:40,right:20,top:36,bottom:30,containLabel:true},
+    xAxis:axis({type:'category',data:keep.map(i=>cv.bins[i]===36?'36↑':String(cv.bins[i]))}),yAxis:axis({type:'value'}),
+    series:ys.map(y=>({name:y+'년',type:'line',smooth:false,symbolSize:6,lineStyle:{width:2.5,color:cc[y]},itemStyle:{color:cc[y]},data:keep.map(i=>cv[y][i])}))});
+  const rs=A.repeat_share, rdd=A.repeat_share_dedup;
+  ch('ch-rep').setOption({...base(),legend:{top:0,textStyle:{fontSize:11,color:C.mute}},grid:{left:40,right:20,top:36,bottom:40,containLabel:true},
+    xAxis:axis({type:'category',data:ys.map(y=>y+'년\n보낸 시군구 '+A.sgg_sending[y]+'곳'),axisLabel:{interval:0,color:C.mute,fontSize:11,lineHeight:16}}),yAxis:axis({type:'value',axisLabel:{formatter:v=>(v*100).toFixed(0)+'%',color:C.mute,fontSize:11}}),
+    series:[{name:'전체',type:'bar',barMaxWidth:40,itemStyle:{color:C.red},data:ys.map(y=>rs[y]),label:{show:true,position:'top',formatter:p=>(p.value*100).toFixed(1)+'%',fontSize:11}},
+            {name:'같은 본문 합침',type:'bar',barMaxWidth:40,itemStyle:{color:C.grey},data:ys.map(y=>rdd[y]),label:{show:true,position:'top',formatter:p=>(p.value*100).toFixed(1)+'%',fontSize:11,color:C.mute}}]});
+  const reg=Object.entries(A.region).sort((a,b)=>a[1].per_sgg-b[1].per_sgg);
+  ch('ch-reg').setOption({...base(),tooltip:{trigger:'item',formatter:p=>{const r=A.region[p.name];return `${p.name}<br>시군구 하나당 ${r.per_sgg.toFixed(2)}건 (시군구 ${r.n_sgg})<br>시도 합계 ${r.per_hot_day.toFixed(1)}건/일 · 문자 온 날 ${(r.p_any*100).toFixed(0)}%<br>더운 날 ${r.hot_days}일 · 2025/2024 배율 ${r.ratio_2025_2024??'-'}`;}},
+    grid:{left:10,right:50,top:10,bottom:10,containLabel:true},xAxis:axis({type:'value'}),yAxis:axis({type:'category',data:reg.map(e=>e[0])}),
+    series:[{type:'bar',barMaxWidth:16,data:reg.map(e=>({value:e[1].per_sgg,itemStyle:{color:['경북','대구'].includes(e[0])?C.red:C.grey}})),label:{show:true,position:'right',fontSize:11,color:C.mute,formatter:p=>p.value.toFixed(2)}}]});
+  const I=A.irr, row=(n,v)=>`<tr><td>${n}</td><td>${v[0].toFixed(2)}배</td><td>${v[1].toFixed(2)}~${v[2].toFixed(2)}</td><td>${v[3]<0.05?'유의':'유의하지 않음'}</td></tr>`;
+  document.getElementById('tbl-irr').innerHTML=`<table class="m"><tr><th>모형</th><th>배율</th><th>95% 구간</th><th></th></tr>
+    <tr><td colspan="4" style="text-align:left;color:#6B6F76;font-size:12px">2025년 / 2024년</td></tr>${row('포아송',I.poisson['2025'])}${row('음이항',I.negbin['2025'])}
+    <tr><td colspan="4" style="text-align:left;color:#6B6F76;font-size:12px">2026년 / 2024년</td></tr>${row('포아송',I.poisson['2026'])}${row('음이항',I.negbin['2026'])}</table>`;
+}
+</script>
+</body>
+</html>
