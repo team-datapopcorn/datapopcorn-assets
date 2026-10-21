@@ -1,0 +1,24 @@
+{
+ "retrieved": "2026-10-21T14:59:28.799Z",
+ "startDate": "2016-01-01",
+ "endDate": "2026-10-21",
+ "timeUnit": "month",
+ "results": [
+  {
+   "title": "몬스터 로맨스",
+   "keywords": [
+    "몬스터 로맨스"
+   ],
+   "data": [
+    {
+     "period": "2017-11-01",
+     "ratio": 100
+    },
+    {
+     "period": "2018-03-01",
+     "ratio": 71.42857
+    }
+   ]
+  }
+ ]
+}
