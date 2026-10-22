@@ -1,0 +1,30 @@
+{
+  "source_title": "2026년 4분기 소매유통업 경기전망지수(RBSI) 조사",
+  "publisher": "대한상공회의소",
+  "official_page": "https://www.korcham.net/nCham/Service/Economy/appl/KcciReportDetail.asp?SEQ_NO_C010=20120946014&CHAM_CD=B001",
+  "official_pdf": "http://www.koreannet.or.kr/madang/fileDownload.do?savedFileName=4df6dca3-4293-43e5-8c94-e8d576bd7c23.pdf&filePath=/storage/koreannet3.0/2026",
+  "retrieved_at": "2026-10-22T02:08:52.936642+00:00",
+  "publication_date": "2026-10-22",
+  "online_embargo_release": "2026-10-21T12:00:00+09:00",
+  "survey_start": "2026-08-31",
+  "survey_end": "2026-09-18",
+  "survey_target": 500,
+  "actual_response_count": null,
+  "area": "서울 및 6대 광역시",
+  "seasonally_adjusted": false,
+  "formula": "(호전예상 기업수-악화예상 기업수)/응답기업수*100+100",
+  "sector_sample_sizes": null,
+  "microdata_available": false,
+  "data_method": "공식 PDF 본문 및 그림1·그림2 수치 수동 전사, 원문 이미지 대조",
+  "pdf_sha256": "efcaa7b44de51289fd032a3dc6da6ad9d57f6d46d8afa112617436373dd016b3",
+  "news": [
+    {
+      "url": "https://www.ajunews.com/20261021135740125",
+      "published": "2026-10-21T14:41:00+09:00"
+    },
+    {
+      "url": "https://www.etoday.co.kr/news/view/2638306",
+      "published": "2026-10-21T12:00:00+09:00"
+    }
+  ]
+}
