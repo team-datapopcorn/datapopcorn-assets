@@ -1,0 +1,12 @@
+{
+ "retrieved": "2026-10-23T12:30:11.143Z",
+ "note": "Malfoid 태그 검색 방식 비교(전체 기간, 날짜 필터 없음 / 9/1~10/22 필터)",
+ "Malfoid": {
+  "s_tag_partial_all": 2217,
+  "s_tag_full_all": 1816,
+  "s_tag_partial_0901_1022": 2185,
+  "s_tag_full_0901_1022": 1788
+ },
+ "nologin_list_unique_ids": 590,
+ "nologin_list_note": "날짜 필터 없이 목록을 80페이지까지 요청했을 때 받은 고유 작품 수(이후 페이지는 같은 결과 반복)"
+}
