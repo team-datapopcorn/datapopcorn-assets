@@ -14,6 +14,7 @@ DataPopcorn 테크블로그 글 [datapopcorn.ai/blog/ts-malfoy-search-data](http
 | `data/daily_gender_female.json`, `data/daily_gender_male.json` | 데이터랩 일간 성별 필터 (2026-09-01~10-22) |
 | `data/week_mal_ay.json` | 데이터랩 주간: 말포이 / 악역영애 말포이 (2016~2026) |
 | `data/pixiv_tagmode_check.json` | pixiv 'Malfoid' 태그 부분일치·완전일치 총계 비교, 비로그인 목록 상한 관찰 기록 |
+| `data/novelpia_views.json` | 노벨피아 원작 페이지 조회·추천·선호 수 (웨이백머신 보관본 7개 + 2026-10-23 직접 조회) |
 | `data/pixiv_counts.json` | pixiv 태그 검색 총계. 'Malfoid'·'ドラコ・マルフォイ' 일별(2026-09-01~10-22), 'ドラコ・マルフォイ'·'女体化マルフォイ' 월별(2016-01~2026-10) |
 
 ## 주의

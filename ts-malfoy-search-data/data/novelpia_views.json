@@ -1,0 +1,79 @@
+{
+ "work": "악역영애 말포이 (노벨피아 novel/3291)",
+ "retrieved": "2026-10-23T13:02:38+00:00",
+ "note": "웨이백머신 보관본 HTML과 현재 페이지 HTML에서 조회·추천·선호 숫자만 추출. 2021·2023년 보관본은 옛 화면이라 라벨이 다를 수 있음",
+ "rows": [
+  {
+   "utc": "2021-05-31T03:19",
+   "kst": "2021-05-31T12:19",
+   "views": 246315,
+   "views_label": "조회(구 화면, 단위 명)",
+   "recommend": null,
+   "prefer": null,
+   "source": "web.archive.org/web/20210531031905/https://novelpia.com/novel/3291"
+  },
+  {
+   "utc": "2023-04-10T07:27",
+   "kst": "2023-04-10T16:27",
+   "views": 1017031,
+   "views_label": "조회(구 화면, 단위 명)",
+   "recommend": null,
+   "prefer": null,
+   "source": "web.archive.org/web/20230410072744/https://novelpia.com/novel/3291"
+  },
+  {
+   "utc": "2025-04-14T09:17",
+   "kst": "2025-04-14T18:17",
+   "views": 1434465,
+   "views_label": "조회",
+   "recommend": 123658,
+   "prefer": 12313,
+   "source": "web.archive.org/web/20250414091737/https://novelpia.com/novel/3291"
+  },
+  {
+   "utc": "2026-09-30T13:27",
+   "kst": "2026-09-30T22:27",
+   "views": 1654209,
+   "views_label": "조회",
+   "recommend": 134865,
+   "prefer": 13467,
+   "source": "web.archive.org/web/20260930132720/https://novelpia.com/novel/3291"
+  },
+  {
+   "utc": "2026-09-30T22:35",
+   "kst": "2026-10-01T07:35",
+   "views": 1678249,
+   "views_label": "조회",
+   "recommend": 135699,
+   "prefer": 13771,
+   "source": "web.archive.org/web/20260930223518/https://novelpia.com/novel/3291"
+  },
+  {
+   "utc": "2026-10-06T03:00",
+   "kst": "2026-10-06T12:00",
+   "views": 2122108,
+   "views_label": "조회",
+   "recommend": 157380,
+   "prefer": 17791,
+   "source": "web.archive.org/web/20261006030030/https://novelpia.com/novel/3291"
+  },
+  {
+   "utc": "2026-10-16T15:52",
+   "kst": "2026-10-17T00:52",
+   "views": 2764459,
+   "views_label": "조회",
+   "recommend": 184216,
+   "prefer": 21737,
+   "source": "web.archive.org/web/20261016155208/https://novelpia.com/novel/3291"
+  },
+  {
+   "utc": "2026-10-23T12:51",
+   "kst": "2026-10-23T21:51",
+   "views": 2878075,
+   "views_label": "조회",
+   "recommend": 188987,
+   "prefer": 22277,
+   "source": "novelpia.com 직접 조회"
+  }
+ ]
+}
