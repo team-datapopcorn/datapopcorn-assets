@@ -1,0 +1,78 @@
+{
+  "dataset": "국가데이터처 「2025년 기업생멸행정통계(잠정) 결과」 보도자료 <표 19> 연도별 신생기업 생존율",
+  "release_date": "2026-10-22 12:00 KST (보도시점)",
+  "release_page_url": "https://mods.go.kr/board.es?mid=a10301010000&bid=11469&list_no=447531&act=view&mainXml=Y",
+  "pdf": {
+    "url": "https://mods.go.kr/boardDownload.es?bid=11469&list_no=447531&seq=1",
+    "file_name_local": "business-demography-2025.pdf",
+    "sha256": "d95d61ae749adea670198fbc0d766b445ab8768cd660b6e543e64b6c5aa92507",
+    "bytes": 5291270,
+    "page_count": 84,
+    "saved_at": "2026-10-24T06:01:14+09:00",
+    "redistributed": false
+  },
+  "table19": {
+    "pdf_page": 27,
+    "printed_page": 21,
+    "unit": "%, %p",
+    "observation_years": [
+      2021,
+      2022,
+      2023,
+      2024
+    ],
+    "provisional_years": [
+      2024
+    ],
+    "scopes": [
+      "전체",
+      "부동산업 제외"
+    ],
+    "scope_note": "원문 표의 첫 블록에는 라벨이 없고 표20·21에서 '전 산 업'과 같은 값이라 '전체'로 표기",
+    "first_data_row_text": "2021년 64.1 54.2 46.4 38.9 34.3 30.4 26.0"
+  },
+  "text_extraction": {
+    "file": "source-extracted.json",
+    "sha256": "55242fbfcf6edbf5287b577db856961b81a31ef18ad3801d7d00dd21c2dccdb7",
+    "saved_at": "2026-10-24T06:01:27+09:00",
+    "cross_extractor_check": {
+      "tool": "pdftotext -layout (poppler)",
+      "same_numbers": true,
+      "provisional_mark_attached_to": [
+        2023
+      ]
+    }
+  },
+  "cross_checks_same_release": {
+    "p28_전체_1y": true,
+    "p28_부동산업 제외_1y": true,
+    "p29_전체_5y": true,
+    "p29_부동산업 제외_5y": true,
+    "p8_summary_전체": true
+  },
+  "definitions_located": {
+    "birth_and_active": "PDF 81쪽(인쇄 75쪽)",
+    "survival": "PDF 82쪽(인쇄 76쪽)",
+    "why_2024": "PDF 2쪽 일러두기",
+    "revision_and_coverage_caveats": "PDF 83쪽(인쇄 77쪽): 산업분류 갱신으로 과거 수치 변경 가능, 2023년부터 법인세 DB 개선으로 금융·보험업 자료 추가"
+  },
+  "news_context": [
+    "https://www.yna.co.kr/view/AKR20261022079051002",
+    "https://www.ajunews.com/20261022110342687"
+  ],
+  "news_date": "2026-10-22",
+  "retrieved_label": "2026-10-24",
+  "formula": "n년 생존율 = (t-n년 신생기업 중 t년까지 생존 기업 수 / t-n년 신생기업 수) x 100; birth_year = observation_year - horizon_years",
+  "csv_contract": {
+    "survival_rates.csv": [
+      "scope",
+      "observation_year",
+      "horizon_years",
+      "birth_year",
+      "rate_pct",
+      "pdf_page"
+    ],
+    "rows": 56
+  },
+  "license_note": "원문 PDF·기사 본문은 싣지 않고 표 숫자와 출처 메타만 공개"
+}
