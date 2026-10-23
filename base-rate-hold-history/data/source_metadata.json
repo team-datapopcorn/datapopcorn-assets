@@ -1,0 +1,43 @@
+{
+  "retrieved": "2026-10-23",
+  "sources": [
+    {
+      "name": "한국은행 기준금리 추이(목록)",
+      "url": "https://www.bok.or.kr/portal/singl/baseRate/list.do?dataSeCd=01&menuNo=200643",
+      "snapshot_file_not_redistributed": "bok-rate-history.html",
+      "sha256": "32d9ca92f24649c82d41278b76a0f843ad726e16c417ee028f8c6cfd2f4e9b29",
+      "used_part": "변경일자 표 tbody만 (그래프 배열 미사용)"
+    },
+    {
+      "name": "Monetary Policy Decision (October 22, 2026), Bank of Korea",
+      "url": "https://www.bok.or.kr/eng/bbs/E0000634/view.do?depth=400069&menuNo=400069&nttId=11065825&oldMenuNo=400007&programType=newsDataEng&relate=Y",
+      "snapshot_file_not_redistributed": "bok-20261022.pdf",
+      "sha256": "205d87c483eca18f92efab9cbb3afcee245409d3b10e3b6af31afbff8975714a",
+      "used_part": "기준금리 3.00% 동결 문장 확인값 (변경행으로 추가하지 않음)"
+    }
+  ],
+  "table_footnote": "2008년 2월 까지는 콜금리 목표, 2008년 3월부터는 한국은행 기준금리",
+  "decision_20261022_rate_pct": 3.0,
+  "units": {
+    "base_rate_text/rate_pct": "연 %",
+    "diff_pp/diff_to_20261022_pp": "%p",
+    "days": "일(양끝 포함)"
+  },
+  "rules": [
+    "표 tbody 행만 사용",
+    "날짜 오름차순 정렬",
+    "2008-03 이전 콜금리 목표 행은 분석 제외, 경계 diff 미계산",
+    "일별 값은 변경일자 당일부터 새 금리 적용, 직전 공식 변경값 forward-fill (0 채움·선형보간 없음)",
+    "변경일자 기준 계산이며 법적 효력 시각은 검증하지 않음",
+    "2026년은 10월 22일까지 부분 연도"
+  ],
+  "files": [
+    "bok_base_rate_table_raw.csv",
+    "daily_rate.csv",
+    "days_by_rate_2026.csv",
+    "rate_changes.csv",
+    "reference_date_comparison.csv",
+    "source_metadata.json"
+  ],
+  "note": "원문 HTML/PDF는 저작권 때문에 싣지 않습니다. URL과 SHA-256으로 대조하세요."
+}
