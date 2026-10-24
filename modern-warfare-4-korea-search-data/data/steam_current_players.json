@@ -1,0 +1,30 @@
+{
+ "retrieved": "2026-10-24T13:46:26+00:00",
+ "api": "ISteamUserStats/GetNumberOfCurrentPlayers/v1",
+ "apps": {
+  "MW4": {
+   "appid": 4435490,
+   "player_count": 0
+  },
+  "BO7": {
+   "appid": 3606480,
+   "player_count": 0
+  },
+  "BO6": {
+   "appid": 4384550,
+   "player_count": 1250
+  },
+  "MW3": {
+   "appid": 3595270,
+   "player_count": 5765
+  },
+  "MW2": {
+   "appid": 3595230,
+   "player_count": 4597
+  },
+  "CoD_HQ": {
+   "appid": 1938090,
+   "player_count": 212366
+  }
+ }
+}
