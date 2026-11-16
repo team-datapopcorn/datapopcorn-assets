@@ -1,0 +1,173 @@
+{
+  "generated_at": "2026-11-16T07:52:30+00:00",
+  "collection": "datapopcorn-mascot-doodle",
+  "version": 1,
+  "notes": [
+    "Original DataPopcorn mascot artwork (popcorn character with pink rising chart), doodle style for web lessons and slides.",
+    "Generated with Google Gemini (dev@datapopcorn.ai) from the official mascot reference (A1-popcorn-kernel / GitHub org avatar), then background-removed and trimmed locally.",
+    "Palette: black #161414 lines, white fill, brand pink #E8506E. No text or logos inside the images."
+  ],
+  "palette": {
+    "line": "#161414",
+    "fill": "#FFFFFF",
+    "accent": "#E8506E"
+  },
+  "counts": {
+    "poses": 8
+  },
+  "contact_sheet": "mascot-doodle/contact-sheet.png",
+  "assets": [
+    {
+      "id": "mascot-doodle:laptop",
+      "pose": "laptop",
+      "label_ko": "노트북 작업",
+      "description": "Working on a laptop with an empty speech bubble",
+      "use_ko": "실습 시작, 따라 하기 화면",
+      "local_path": "mascot-doodle/mascot-01-laptop.png",
+      "size": [
+        912,
+        947
+      ],
+      "square_path": "mascot-doodle/square/mascot-01-laptop.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    },
+    {
+      "id": "mascot-doodle:explain",
+      "pose": "explain",
+      "label_ko": "설명하기",
+      "description": "Pointing at an empty whiteboard",
+      "use_ko": "개념 설명",
+      "local_path": "mascot-doodle/mascot-02-explain.png",
+      "size": [
+        895,
+        752
+      ],
+      "square_path": "mascot-doodle/square/mascot-02-explain.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    },
+    {
+      "id": "mascot-doodle:think",
+      "pose": "think",
+      "label_ko": "고민하기",
+      "description": "Thinking with a question mark",
+      "use_ko": "질문·도입부",
+      "local_path": "mascot-doodle/mascot-03-think.png",
+      "size": [
+        753,
+        874
+      ],
+      "square_path": "mascot-doodle/square/mascot-03-think.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    },
+    {
+      "id": "mascot-doodle:done",
+      "pose": "done",
+      "label_ko": "완료",
+      "description": "Thumbs up with a check mark",
+      "use_ko": "단계 완료·정답",
+      "local_path": "mascot-doodle/mascot-04-done.png",
+      "size": [
+        913,
+        867
+      ],
+      "square_path": "mascot-doodle/square/mascot-04-done.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    },
+    {
+      "id": "mascot-doodle:oops",
+      "pose": "oops",
+      "label_ko": "실수·주의",
+      "description": "Flustered with an exclamation mark",
+      "use_ko": "자주 하는 실수·주의사항",
+      "local_path": "mascot-doodle/mascot-05-oops.png",
+      "size": [
+        754,
+        901
+      ],
+      "square_path": "mascot-doodle/square/mascot-05-oops.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    },
+    {
+      "id": "mascot-doodle:hello",
+      "pose": "hello",
+      "label_ko": "인사",
+      "description": "Waving hello",
+      "use_ko": "표지·시작과 끝",
+      "local_path": "mascot-doodle/mascot-06-hello.png",
+      "size": [
+        777,
+        762
+      ],
+      "square_path": "mascot-doodle/square/mascot-06-hello.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    },
+    {
+      "id": "mascot-doodle:yay",
+      "pose": "yay",
+      "label_ko": "축하",
+      "description": "Celebrating with confetti",
+      "use_ko": "성공·결과 공개",
+      "local_path": "mascot-doodle/mascot-07-yay.png",
+      "size": [
+        856,
+        921
+      ],
+      "square_path": "mascot-doodle/square/mascot-07-yay.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    },
+    {
+      "id": "mascot-doodle:check",
+      "pose": "check",
+      "label_ko": "꼼꼼히 확인",
+      "description": "Checking a document with a magnifier",
+      "use_ko": "결과 검증",
+      "local_path": "mascot-doodle/mascot-08-check.png",
+      "size": [
+        741,
+        885
+      ],
+      "square_path": "mascot-doodle/square/mascot-08-check.png",
+      "square_size": [
+        1000,
+        1000
+      ],
+      "format": "png",
+      "background": "transparent"
+    }
+  ]
+}
