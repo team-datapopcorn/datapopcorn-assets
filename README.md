@@ -10,6 +10,7 @@ This repository contains company assets for DataPopcorn.
 ## Collections
 - `n8n-academy/`: Gamified n8n learning web app (Duolingo-inspired, unofficial; single-file, Korean).
 - `n8n-cheatsheet/`: Printable n8n cheat sheet and flashcards.
+- `mascot-doodle/`: DataPopcorn mascot doodle set (8 poses, transparent PNG) for web lessons and slides.
 - `third-party/anthropic/`: Anthropic hand-drawn-style asset archive for internal reference and reuse.
 
 Each reusable collection should include:
